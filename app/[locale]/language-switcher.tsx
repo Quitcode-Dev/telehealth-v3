@@ -9,6 +9,14 @@ const baseButtonClassName =
   "h-10 px-4 text-sm font-semibold tracking-wide text-black dark:text-zinc-50";
 const selectedButtonClassName =
   "bg-black text-white dark:bg-zinc-50 dark:text-black";
+const localeLabels: Record<(typeof routing.locales)[number], string> = {
+  en: "EN",
+  uk: "UK",
+};
+const localeSwitchLabels: Record<(typeof routing.locales)[number], string> = {
+  en: "Switch to English",
+  uk: "Switch to Ukrainian",
+};
 
 export function LanguageSwitcher() {
   const locale = useLocale();
@@ -21,12 +29,8 @@ export function LanguageSwitcher() {
       <div role="group" className="inline-flex rounded-full border border-black/[.08] dark:border-white/[.145]">
         {routing.locales.map((nextLocale) => {
           const isSelected = locale === nextLocale;
-          const label = nextLocale === "uk" ? "UK" : "EN";
-          const switchLabel = isSelected
-            ? `${label} selected`
-            : nextLocale === "uk"
-              ? "Switch to Ukrainian"
-              : "Switch to English";
+          const label = localeLabels[nextLocale];
+          const switchLabel = isSelected ? `${label} selected` : localeSwitchLabels[nextLocale];
           const buttonClassName = `${baseButtonClassName} ${
             isSelected ? selectedButtonClassName : ""
           }`;
