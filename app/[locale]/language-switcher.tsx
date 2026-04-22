@@ -5,6 +5,11 @@ import {useTransition} from "react";
 import {routing} from "@/i18n/routing";
 import {usePathname, useRouter} from "@/i18n/navigation";
 
+const baseButtonClassName =
+  "h-10 px-4 text-sm font-semibold tracking-wide text-black dark:text-zinc-50";
+const selectedButtonClassName =
+  "bg-black text-white dark:bg-zinc-50 dark:text-black";
+
 export function LanguageSwitcher() {
   const locale = useLocale();
   const pathname = usePathname();
@@ -18,6 +23,9 @@ export function LanguageSwitcher() {
           const isSelected = locale === nextLocale;
           const label = nextLocale === "uk" ? "UK" : "EN";
           const switchLabel = nextLocale === "uk" ? "Switch to Ukrainian" : "Switch to English";
+          const buttonClassName = `${baseButtonClassName} ${
+            isSelected ? selectedButtonClassName : ""
+          }`;
 
           return (
             <button
@@ -31,9 +39,9 @@ export function LanguageSwitcher() {
                   router.replace(pathname, {locale: nextLocale});
                 });
               }}
-              className="h-10 px-4 text-sm font-semibold tracking-wide text-black disabled:opacity-100 disabled:bg-black disabled:text-white dark:text-zinc-50 dark:disabled:bg-zinc-50 dark:disabled:text-black"
+              className={buttonClassName}
             >
-              {label}
+              {isSelected ? `✓ ${label}` : label}
             </button>
           );
         })}
