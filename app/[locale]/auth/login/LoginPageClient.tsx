@@ -17,6 +17,8 @@ type LoginStep = "phone" | "otp";
 
 type LoginPageClientProps = {
   callbackUrl: string;
+  initialPhoneNumber?: string;
+  initialStep?: LoginStep;
 };
 
 function parseApiError(payload: unknown) {
@@ -36,13 +38,14 @@ function getVerifyOtpErrorMessage(t: ReturnType<typeof useTranslations>, error: 
   return error === OTP_ERRORS.INCORRECT || error === OTP_ERRORS.EXPIRED ? t("errors.otpIncorrect") : t("errors.verifyOtpFailed");
 }
 
-export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
+export function LoginPageClient({callbackUrl, initialPhoneNumber, initialStep = "phone"}: LoginPageClientProps) {
   const t = useTranslations("LoginPage");
   const router = useRouter();
-  const [step, setStep] = useState<LoginStep>("phone");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const startsAtOtp = initialStep === "otp" && !!initialPhoneNumber;
+  const [step, setStep] = useState<LoginStep>(startsAtOtp ? "otp" : "phone");
+  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber ?? "");
   const [otpDigits, setOtpDigits] = useState<string[]>(Array.from({length: OTP_LENGTH}, () => ""));
-  const [countdown, setCountdown] = useState(0);
+  const [countdown, setCountdown] = useState(startsAtOtp ? RESEND_COOLDOWN_SECONDS : 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);

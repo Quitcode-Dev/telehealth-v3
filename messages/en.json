@@ -35,5 +35,37 @@
       "verifyOtpFailed": "We couldn't verify your OTP code. Please try again.",
       "signInFailed": "Sign-in failed after OTP verification. Please try again."
     }
+  },
+  "RegisterPage": {
+    "title": "Patient registration",
+    "description": "Complete your profile to create a patient account and verify it with OTP.",
+    "fullNameLabel": "Full name",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "+380XXXXXXXXX",
+    "dateOfBirthLabel": "Date of birth",
+    "emailLabel": "Email (optional)",
+    "emailPlaceholder": "name@example.com",
+    "preferredLanguageLabel": "Preferred language",
+    "languageUk": "Ukrainian",
+    "languageEn": "English",
+    "coverageTypeLabel": "Coverage type",
+    "coverageTypeNhsu": "NHSU declaration",
+    "coverageTypePrivate": "Private insurance",
+    "coverageIdLabel": "NHSU declaration number or private insurance ID",
+    "consentLabel": "I consent to personal data processing according to Ukrainian Law No. 2297-VI.",
+    "consentLinkText": "View full consent text",
+    "submit": "Create account and send OTP",
+    "submitting": "Creating account...",
+    "errors": {
+      "fullNameRequired": "Enter your full name.",
+      "phoneFormat": "Enter a valid Ukrainian number in format +380XXXXXXXXX.",
+      "dateOfBirthRequired": "Enter your date of birth.",
+      "coverageIdRequired": "Enter your NHSU declaration number or private insurance ID.",
+      "consentRequired": "You must consent to data processing before continuing.",
+      "phoneExists": "This phone number is already registered.",
+      "emailExists": "This email is already registered.",
+      "registrationFailed": "We couldn't create your account. Please try again.",
+      "otpFailed": "Your account was created, but OTP sending failed. Please try logging in."
+    }
   }
 }
