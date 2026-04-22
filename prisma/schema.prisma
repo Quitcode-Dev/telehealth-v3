@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -13,7 +12,7 @@ model User {
   phoneNumber        String?             @unique
   firstName          String
   lastName           String
-  localePreference   String              @default("en")
+  localePreference   String              @default("en") @db.VarChar(10)
   patientProfile     Patient?
   sentMessages       Message[]           @relation("MessageSender")
   receivedMessages   Message[]           @relation("MessageRecipient")
@@ -44,7 +43,7 @@ model Appointment {
   id             String      @id @default(uuid()) @db.Uuid
   patientId      String      @db.Uuid
   scheduledAt    DateTime
-  status         String      @default("scheduled")
+  status         AppointmentStatus @default(SCHEDULED)
   reasonForVisit String?
   providerName   String?
   location       String?
@@ -61,7 +60,7 @@ model LabResult {
   appointmentId String?      @db.Uuid
   testName      String
   resultValue   String?
-  status        String       @default("pending")
+  status        LabResultStatus @default(PENDING)
   observedAt    DateTime?
   releasedAt    DateTime?
   attachmentUrl String?
@@ -88,7 +87,7 @@ model ProxyRelationship {
   id               String    @id @default(uuid()) @db.Uuid
   proxyUserId      String    @db.Uuid
   patientId        String    @db.Uuid
-  relationshipType String
+  relationshipType ProxyRelationshipType
   isActive         Boolean   @default(true)
   startsAt         DateTime  @default(now())
   endsAt           DateTime?
@@ -97,7 +96,8 @@ model ProxyRelationship {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  @@unique([proxyUserId, patientId])
+  @@unique([proxyUserId, patientId], name: "unique_proxy_patient")
+  @@index([isActive, patientId])
 }
 
 model InsurancePolicy {
@@ -113,13 +113,13 @@ model InsurancePolicy {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  @@unique([providerName, policyNumber])
+  @@unique([patientId, providerName, policyNumber], name: "unique_patient_policy")
 }
 
 model Notification {
   id          String    @id @default(uuid()) @db.Uuid
   userId      String    @db.Uuid
-  type        String
+  type        NotificationType
   title       String
   content     String
   isRead      Boolean   @default(false)
@@ -128,4 +128,32 @@ model Notification {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum LabResultStatus {
+  PENDING
+  COMPLETED
+  REVIEWED
+}
+
+enum ProxyRelationshipType {
+  PARENT
+  GUARDIAN
+  CAREGIVER
+  LEGAL_REPRESENTATIVE
+}
+
+enum NotificationType {
+  APPOINTMENT
+  LAB_RESULT
+  MESSAGE
+  REMINDER
+  SYSTEM
 }
