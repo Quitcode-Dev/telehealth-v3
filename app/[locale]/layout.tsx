@@ -4,7 +4,7 @@ import {getMessages, getTranslations, setRequestLocale} from "next-intl/server";
 import {notFound} from "next/navigation";
 import "../globals.css";
 import {routing} from "@/i18n/routing";
-import {LanguageSwitcher} from "./language-switcher";
+import {AppShell} from "@/src/components/layout/AppShell";
 
 type LayoutProps = Readonly<{
   children: React.ReactNode;
@@ -41,8 +41,7 @@ export default async function LocaleLayout({children, params}: LayoutProps) {
     <html lang={locale} className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <LanguageSwitcher />
-          {children}
+          <AppShell>{children}</AppShell>
         </NextIntlClientProvider>
       </body>
     </html>
