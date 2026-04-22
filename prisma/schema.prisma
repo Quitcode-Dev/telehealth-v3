@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String              @id @default(uuid()) @db.Uuid
+  email              String              @unique
+  phoneNumber        String?             @unique
+  firstName          String
+  lastName           String
+  localePreference   String              @default("en")
+  patientProfile     Patient?
+  sentMessages       Message[]           @relation("MessageSender")
+  receivedMessages   Message[]           @relation("MessageRecipient")
+  notifications      Notification[]
+  proxyRelationships ProxyRelationship[] @relation("ProxyUser")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model Patient {
+  id                       String              @id @default(uuid()) @db.Uuid
+  userId                   String              @unique @db.Uuid
+  dateOfBirth              DateTime?
+  gender                   String?
+  phoneNumber              String?
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  appointments             Appointment[]
+  labResults               LabResult[]
+  insurancePolicies        InsurancePolicy[]
+  incomingProxyDelegations ProxyRelationship[] @relation("ProxyPatient")
+  user                     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+}
+
+model Appointment {
+  id             String      @id @default(uuid()) @db.Uuid
+  patientId      String      @db.Uuid
+  scheduledAt    DateTime
+  status         String      @default("scheduled")
+  reasonForVisit String?
+  providerName   String?
+  location       String?
+  notes          String?
+  patient        Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  labResults     LabResult[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model LabResult {
+  id            String       @id @default(uuid()) @db.Uuid
+  patientId     String       @db.Uuid
+  appointmentId String?      @db.Uuid
+  testName      String
+  resultValue   String?
+  status        String       @default("pending")
+  observedAt    DateTime?
+  releasedAt    DateTime?
+  attachmentUrl String?
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Message {
+  id          String    @id @default(uuid()) @db.Uuid
+  senderId    String    @db.Uuid
+  recipientId String    @db.Uuid
+  subject     String?
+  body        String
+  readAt      DateTime?
+  sender      User      @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient   User      @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ProxyRelationship {
+  id               String    @id @default(uuid()) @db.Uuid
+  proxyUserId      String    @db.Uuid
+  patientId        String    @db.Uuid
+  relationshipType String
+  isActive         Boolean   @default(true)
+  startsAt         DateTime  @default(now())
+  endsAt           DateTime?
+  proxyUser        User      @relation("ProxyUser", fields: [proxyUserId], references: [id], onDelete: Cascade)
+  patient          Patient   @relation("ProxyPatient", fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([proxyUserId, patientId])
+}
+
+model InsurancePolicy {
+  id             String    @id @default(uuid()) @db.Uuid
+  patientId      String    @db.Uuid
+  providerName   String
+  policyNumber   String
+  groupNumber    String?
+  effectiveDate  DateTime?
+  expirationDate DateTime?
+  isPrimary      Boolean   @default(true)
+  patient        Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([providerName, policyNumber])
+}
+
+model Notification {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  type        String
+  title       String
+  content     String
+  isRead      Boolean   @default(false)
+  deliveredAt DateTime?
+  readAt      DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
