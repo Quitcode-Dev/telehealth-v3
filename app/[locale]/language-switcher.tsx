@@ -18,14 +18,18 @@ const localeSwitchLabels: Record<(typeof routing.locales)[number], string> = {
   uk: "Switch to Ukrainian",
 };
 
-export function LanguageSwitcher() {
+type LanguageSwitcherProps = {
+  className?: string;
+};
+
+export function LanguageSwitcher({className}: LanguageSwitcherProps) {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   return (
-    <nav aria-label="Language switcher" className="w-full flex justify-end p-4">
+    <nav aria-label="Language switcher" className={className}>
       <div role="group" className="inline-flex rounded-full border border-black/[.08] dark:border-white/[.145]">
         {routing.locales.map((nextLocale) => {
           const isSelected = locale === nextLocale;
