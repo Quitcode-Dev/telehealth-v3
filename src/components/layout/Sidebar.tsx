@@ -11,12 +11,12 @@ export function Sidebar({className}: SidebarProps) {
         <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item}>
-              <a
-                href="#"
-                className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
+              <button
+                type="button"
+                className="w-full rounded-md px-3 py-2 text-left text-sm font-medium text-foreground hover:bg-secondary"
               >
                 {item}
-              </a>
+              </button>
             </li>
           ))}
         </ul>

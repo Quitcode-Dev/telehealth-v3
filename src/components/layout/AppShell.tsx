@@ -20,7 +20,7 @@ export function AppShell({children}: AppShellProps) {
                 className="rounded-md border border-border px-2 py-1 text-sm lg:hidden"
                 aria-label="Open navigation menu"
               >
-                ☰
+                Menu
               </button>
             </SheetTrigger>
           }

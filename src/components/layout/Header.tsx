@@ -17,17 +17,17 @@ export function Header({mobileMenuTrigger}: HeaderProps) {
         <LanguageSwitcher className="hidden sm:block" />
         <button
           type="button"
-          className="rounded-md border border-border px-2 py-1 text-sm"
+          className="rounded-md border border-border px-3 py-1 text-sm"
           aria-label="Notifications"
         >
-          🔔
+          Alerts
         </button>
         <button
           type="button"
-          className="rounded-md border border-border px-2 py-1 text-sm"
+          className="rounded-md border border-border px-3 py-1 text-sm"
           aria-label="User menu"
         >
-          👤
+          Account
         </button>
       </div>
     </header>
