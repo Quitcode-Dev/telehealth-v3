@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Telehealth V3",
   description: "MedBridge Connect patient portal",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
