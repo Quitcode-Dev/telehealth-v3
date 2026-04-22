@@ -10,5 +10,30 @@
     "vercelLogoAlt": "Vercel logomark",
     "deployNow": "Deploy Now",
     "documentation": "Documentation"
+  },
+  "LoginPage": {
+    "title": "Patient login",
+    "phoneStepDescription": "Enter your Ukrainian phone number to receive an OTP code.",
+    "otpStepDescription": "Enter the 6-digit code sent to {phoneNumber}.",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "+380XXXXXXXXX",
+    "sendOtp": "Send OTP code",
+    "sendingOtp": "Sending code...",
+    "otpLabel": "One-time password",
+    "otpDigitLabel": "OTP digit {index}",
+    "verifyOtp": "Verify code and continue",
+    "verifyingOtp": "Verifying code...",
+    "resendOtp": "Resend code",
+    "resendCountdown": "Resend available in {seconds}s",
+    "resendReady": "You can resend the code now.",
+    "errors": {
+      "phoneFormat": "Enter a valid Ukrainian number in format +380XXXXXXXXX.",
+      "sendOtpFailed": "We couldn't send the OTP code. Please try again.",
+      "tooManyRequests": "Too many OTP requests. Please try again later.",
+      "otpFormat": "Enter the full 6-digit OTP code.",
+      "otpIncorrect": "Incorrect or expired OTP code.",
+      "verifyOtpFailed": "We couldn't verify your OTP code. Please try again.",
+      "signInFailed": "Sign-in failed after OTP verification. Please try again."
+    }
   }
 }

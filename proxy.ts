@@ -6,7 +6,7 @@ import {routing} from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 // Paths are normalized by removing locale prefixes before public route checks.
-const PUBLIC_PAGES = new Set(["/", "/login"]);
+const PUBLIC_PAGES = new Set(["/", "/login", "/auth/login"]);
 
 function getPathWithoutLocale(pathname: string) {
   const segments = pathname.split("/");

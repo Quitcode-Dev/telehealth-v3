@@ -98,7 +98,7 @@ async function verifyOtp(request: Request) {
     return NextResponse.json({ error: "Invalid OTP format" }, { status: 400 });
   }
 
-  const otpVerification = await verifyAndConsumeOtpCode(phoneNumber, otpCode);
+  const otpVerification = await verifyAndConsumeOtpCode(phoneNumber, otpCode, { consume: false });
 
   if (!otpVerification.ok && otpVerification.reason === "expired") {
     return NextResponse.json({ error: "OTP has expired" }, { status: 401 });
