@@ -1,7 +1,14 @@
 import {Footer} from "./Footer";
 import {Header} from "./Header";
 import {Sidebar} from "./Sidebar";
-import {Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger} from "@/src/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/src/components/ui/sheet";
 import type {ReactNode} from "react";
 
 type AppShellProps = {
@@ -32,6 +39,15 @@ export function AppShell({children}: AppShellProps) {
           <SheetContent side="left" className="p-0 lg:hidden">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <SheetDescription className="sr-only">Select a destination from the main menu.</SheetDescription>
+            <div className="flex justify-end p-2">
+              <SheetClose
+                type="button"
+                className="rounded-md border border-border px-2 py-1 text-sm"
+                aria-label="Close navigation menu"
+              >
+                Close
+              </SheetClose>
+            </div>
             <Sidebar className="h-full" />
           </SheetContent>
           <main className="flex-1 p-6">{children}</main>
