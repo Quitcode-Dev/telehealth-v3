@@ -1,0 +1,14 @@
+{
+  "Metadata": {
+    "title": "Telehealth V3",
+    "description": "MedBridge Connect patient portal"
+  },
+  "HomePage": {
+    "nextLogoAlt": "Next.js logo",
+    "title": "To get started, edit the page.tsx file.",
+    "description": "Looking for a starting point or more instructions? Head over to <templates>Templates</templates> or the <learning>Learning</learning> center.",
+    "vercelLogoAlt": "Vercel logomark",
+    "deployNow": "Deploy Now",
+    "documentation": "Documentation"
+  }
+}
