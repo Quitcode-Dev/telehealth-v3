@@ -18,14 +18,16 @@ export function Header({mobileMenuTrigger}: HeaderProps) {
         <button
           type="button"
           className="rounded-md border border-border px-3 py-1 text-sm"
+          aria-label="View alerts"
         >
-          Alerts
+          View alerts
         </button>
         <button
           type="button"
           className="rounded-md border border-border px-3 py-1 text-sm"
+          aria-label="Open account menu"
         >
-          Account
+          Account menu
         </button>
       </div>
     </header>
