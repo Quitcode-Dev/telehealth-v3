@@ -31,9 +31,9 @@ export function LanguageSwitcher() {
           const isSelected = locale === nextLocale;
           const label = localeLabels[nextLocale];
           const switchLabel = isSelected ? `${label} selected` : localeSwitchLabels[nextLocale];
-          const buttonClassName = `${baseButtonClassName} ${
-            isSelected ? selectedButtonClassName : ""
-          }`;
+          const buttonClassName = [baseButtonClassName, isSelected ? selectedButtonClassName : null]
+            .filter(Boolean)
+            .join(" ");
 
           return (
             <button
@@ -49,9 +49,9 @@ export function LanguageSwitcher() {
               }}
               className={buttonClassName}
             >
-              {isSelected ? (
+              {isSelected && (
                 <span aria-hidden="true" className="mr-1 inline-block h-2 w-2 rounded-full bg-current" />
-              ) : null}
+              )}
               {label}
             </button>
           );
