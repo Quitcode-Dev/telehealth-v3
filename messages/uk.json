@@ -35,5 +35,37 @@
       "verifyOtpFailed": "Не вдалося перевірити OTP-код. Спробуйте ще раз.",
       "signInFailed": "Не вдалося увійти після перевірки OTP. Спробуйте ще раз."
     }
+  },
+  "RegisterPage": {
+    "title": "Реєстрація пацієнта",
+    "description": "Заповніть профіль, щоб створити обліковий запис пацієнта та підтвердити його через OTP.",
+    "fullNameLabel": "Повне ім'я",
+    "phoneLabel": "Номер телефону",
+    "phonePlaceholder": "+380XXXXXXXXX",
+    "dateOfBirthLabel": "Дата народження",
+    "emailLabel": "Email (необов'язково)",
+    "emailPlaceholder": "name@example.com",
+    "preferredLanguageLabel": "Бажана мова",
+    "languageUk": "Українська",
+    "languageEn": "Англійська",
+    "coverageTypeLabel": "Тип покриття",
+    "coverageTypeNhsu": "Декларація НСЗУ",
+    "coverageTypePrivate": "Приватне страхування",
+    "coverageIdLabel": "Номер декларації НСЗУ або ID приватного страхування",
+    "consentLabel": "Я надаю згоду на обробку персональних даних відповідно до Закону України № 2297-VI.",
+    "consentLinkText": "Переглянути повний текст згоди",
+    "submit": "Створити обліковий запис і надіслати OTP",
+    "submitting": "Створюємо обліковий запис...",
+    "errors": {
+      "fullNameRequired": "Введіть повне ім'я.",
+      "phoneFormat": "Введіть коректний український номер у форматі +380XXXXXXXXX.",
+      "dateOfBirthRequired": "Введіть дату народження.",
+      "coverageIdRequired": "Введіть номер декларації НСЗУ або ID приватного страхування.",
+      "consentRequired": "Потрібно надати згоду на обробку даних перед продовженням.",
+      "phoneExists": "Цей номер телефону вже зареєстровано.",
+      "emailExists": "Цей email вже зареєстровано.",
+      "registrationFailed": "Не вдалося створити обліковий запис. Спробуйте ще раз.",
+      "otpFailed": "Обліковий запис створено, але не вдалося надіслати OTP. Спробуйте увійти."
+    }
   }
 }
