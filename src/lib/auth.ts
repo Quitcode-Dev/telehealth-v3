@@ -3,33 +3,14 @@ import type {Adapter} from "next-auth/adapters";
 import type {NextAuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/src/lib/prisma";
-
-function isValidOtpCode(code: string) {
-  return /^\d{6}$/.test(code);
-}
+import {isValidOtpCode, verifyAndConsumeOtpCode} from "@/src/lib/otp";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60;
 const PATIENT_ROLE = "patient";
 
-function verifyOtpCode(phoneNumber: string, code: string) {
-  const rawOtpStore = process.env.SMS_OTP_CODES_JSON;
-
-  if (!rawOtpStore) {
-    return false;
-  }
-
-  try {
-    const otpStore = JSON.parse(rawOtpStore) as Record<string, {code: string; expiresAt: string}>;
-    const record = otpStore[phoneNumber];
-
-    if (!record || record.code !== code) {
-      return false;
-    }
-
-    return new Date(record.expiresAt).getTime() > Date.now();
-  } catch {
-    return false;
-  }
+async function verifyOtpCode(phoneNumber: string, code: string) {
+  const result = await verifyAndConsumeOtpCode(phoneNumber, code);
+  return result.ok;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -63,7 +44,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (!verifyOtpCode(phoneNumber, otpCode)) {
+        if (!(await verifyOtpCode(phoneNumber, otpCode))) {
           return null;
         }
 
