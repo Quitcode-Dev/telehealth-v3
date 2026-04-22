@@ -34,7 +34,7 @@ model Patient {
   currentMedications       String?
   prefersPushNotifications Boolean             @default(true)
   prefersSmsNotifications  Boolean             @default(false)
-  prefersViberNotifications Boolean            @default(false)
+  prefersViberNotifications Boolean             @default(false)
   appointments             Appointment[]
   labResults               LabResult[]
   insurancePolicies        InsurancePolicy[]

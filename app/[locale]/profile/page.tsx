@@ -13,7 +13,7 @@ import {Input} from "@/src/components/ui/input";
 const profileSchema = z.object({
   firstName: z.string().trim().min(1),
   lastName: z.string().trim().min(1),
-  email: z.string().trim().optional().refine((value) => !value || z.email().safeParse(value).success, "Invalid email"),
+  email: z.string().trim().optional(),
   dateOfBirth: z.string().trim().optional(),
   gender: z.string().trim().optional(),
   phoneNumber: z.string().trim().min(1),

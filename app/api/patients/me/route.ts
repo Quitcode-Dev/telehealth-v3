@@ -245,23 +245,48 @@ export async function PATCH(request: Request) {
       });
 
       if (existingPrimary) {
+        const insuranceUpdateData: {
+          providerName?: string;
+          policyNumber?: string;
+          groupNumber?: string;
+        } = {};
+
+        if (data.insuranceProviderName !== undefined) {
+          insuranceUpdateData.providerName = data.insuranceProviderName;
+        }
+
+        if (data.insurancePolicyNumber !== undefined) {
+          insuranceUpdateData.policyNumber = data.insurancePolicyNumber;
+        }
+
+        if (data.insuranceGroupNumber !== undefined) {
+          insuranceUpdateData.groupNumber = data.insuranceGroupNumber;
+        }
+
         await tx.insurancePolicy.update({
           where: {id: existingPrimary.id},
-          data: {
-            providerName: data.insuranceProviderName ?? undefined,
-            policyNumber: data.insurancePolicyNumber ?? undefined,
-            groupNumber: data.insuranceGroupNumber ?? undefined,
-          },
+          data: insuranceUpdateData,
         });
       } else if (data.insuranceProviderName && data.insurancePolicyNumber) {
+        const insuranceCreateData: {
+          patientId: string;
+          providerName: string;
+          policyNumber: string;
+          isPrimary: boolean;
+          groupNumber?: string;
+        } = {
+          patientId: profile.id,
+          providerName: data.insuranceProviderName,
+          policyNumber: data.insurancePolicyNumber,
+          isPrimary: true,
+        };
+
+        if (data.insuranceGroupNumber !== undefined) {
+          insuranceCreateData.groupNumber = data.insuranceGroupNumber;
+        }
+
         await tx.insurancePolicy.create({
-          data: {
-            patientId: profile.id,
-            providerName: data.insuranceProviderName,
-            policyNumber: data.insurancePolicyNumber,
-            groupNumber: data.insuranceGroupNumber,
-            isPrimary: true,
-          },
+          data: insuranceCreateData,
         });
       }
     }
