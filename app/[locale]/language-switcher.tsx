@@ -22,7 +22,11 @@ export function LanguageSwitcher() {
         {routing.locales.map((nextLocale) => {
           const isSelected = locale === nextLocale;
           const label = nextLocale === "uk" ? "UK" : "EN";
-          const switchLabel = nextLocale === "uk" ? "Switch to Ukrainian" : "Switch to English";
+          const switchLabel = isSelected
+            ? `${label} selected`
+            : nextLocale === "uk"
+              ? "Switch to Ukrainian"
+              : "Switch to English";
           const buttonClassName = `${baseButtonClassName} ${
             isSelected ? selectedButtonClassName : ""
           }`;
@@ -41,7 +45,8 @@ export function LanguageSwitcher() {
               }}
               className={buttonClassName}
             >
-              {isSelected ? `✓ ${label}` : label}
+              {isSelected ? <span aria-hidden="true">● </span> : null}
+              {label}
             </button>
           );
         })}
