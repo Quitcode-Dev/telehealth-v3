@@ -140,6 +140,7 @@ model OtpCode {
   updatedAt  DateTime @updatedAt
 
   @@index([phoneNumber, createdAt])
+  @@index([phoneNumber, consumedAt, createdAt])
 }
 
 enum AppointmentStatus {

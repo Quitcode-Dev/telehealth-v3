@@ -1,18 +1,21 @@
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { encode } from "next-auth/jwt";
 import prisma from "@/src/lib/prisma";
 import {
   generateOtpCode,
   hashOtpCode,
+  isValidPhoneNumber,
   isValidOtpCode,
   OTP_RATE_LIMIT_MAX_REQUESTS,
   OTP_RATE_LIMIT_WINDOW_MS,
   OTP_TTL_MS,
+  verifyAndConsumeOtpCode,
 } from "@/src/lib/otp";
 import { getSmsProvider } from "@/src/lib/sms-provider";
 
 const PATIENT_ROLE = "patient";
+const MIN_PHONE_NUMBER_LENGTH = 8;
+const SESSION_TOKEN_MAX_AGE_SECONDS = 60 * 60;
 
 type RouteContext = {
   params: Promise<{ action: string }>;
@@ -30,7 +33,11 @@ async function sendOtp(request: Request) {
   const body = (await request.json().catch(() => null)) as { phoneNumber?: string } | null;
   const rawPhoneNumber = body?.phoneNumber;
 
-  if (typeof rawPhoneNumber !== "string" || rawPhoneNumber.trim().length < 8) {
+  if (
+    typeof rawPhoneNumber !== "string" ||
+    rawPhoneNumber.trim().length < MIN_PHONE_NUMBER_LENGTH ||
+    !isValidPhoneNumber(rawPhoneNumber)
+  ) {
     return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
   }
 
@@ -52,13 +59,12 @@ async function sendOtp(request: Request) {
   }
 
   const otpCode = generateOtpCode();
-  const otpHash = hashOtpCode(phoneNumber, otpCode);
   const expiresAt = new Date(now.getTime() + OTP_TTL_MS);
 
   await prisma.otpCode.create({
     data: {
       phoneNumber,
-      otpHash,
+      otpHash: hashOtpCode(phoneNumber, otpCode),
       expiresAt,
     },
   });
@@ -84,44 +90,25 @@ async function verifyOtp(request: Request) {
   const phoneNumber = normalizePhoneNumber(rawPhoneNumber);
   const otpCode = rawOtpCode.trim();
 
+  if (!isValidPhoneNumber(phoneNumber)) {
+    return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+  }
+
   if (!isValidOtpCode(otpCode)) {
     return NextResponse.json({ error: "Invalid OTP format" }, { status: 400 });
   }
 
-  const otpRecord = await prisma.otpCode.findFirst({
-    where: {
-      phoneNumber,
-      consumedAt: null,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const otpVerification = await verifyAndConsumeOtpCode(phoneNumber, otpCode);
 
-  if (!otpRecord) {
-    return NextResponse.json({ error: "Incorrect OTP code" }, { status: 401 });
-  }
-
-  if (otpRecord.expiresAt.getTime() <= Date.now()) {
+  if (!otpVerification.ok && otpVerification.reason === "expired") {
     return NextResponse.json({ error: "OTP has expired" }, { status: 401 });
   }
 
-  const otpHash = hashOtpCode(phoneNumber, otpCode);
-
-  if (otpRecord.otpHash !== otpHash) {
+  if (!otpVerification.ok) {
     return NextResponse.json({ error: "Incorrect OTP code" }, { status: 401 });
   }
 
-  await prisma.otpCode.update({
-    where: {
-      id: otpRecord.id,
-    },
-    data: {
-      consumedAt: new Date(),
-    },
-  });
-
-  const user = await prisma.user.findFirst({
+  const users = await prisma.user.findMany({
     where: {
       OR: [{ phoneNumber }, { patientProfile: { phoneNumber } }],
     },
@@ -132,27 +119,44 @@ async function verifyOtp(request: Request) {
         },
       },
     },
+    take: 2,
   });
 
-  if (!user || !user.patientProfile) {
+  if (users.length === 0) {
     return NextResponse.json({ error: "User not found for phone number" }, { status: 404 });
   }
 
-  const patientPhone = user.phoneNumber ?? user.patientProfile.phoneNumber ?? phoneNumber;
+  if (users.length > 1) {
+    return NextResponse.json({ error: "Phone number matches multiple users" }, { status: 409 });
+  }
+
+  const user = users[0];
+
+  if (!user.patientProfile) {
+    return NextResponse.json({ error: "User not found for phone number" }, { status: 404 });
+  }
+
+  const patientPhone = user.phoneNumber ?? user.patientProfile.phoneNumber;
+
+  if (!patientPhone) {
+    return NextResponse.json({ error: "User phone number is unavailable" }, { status: 404 });
+  }
   const nextAuthSecret = process.env.NEXTAUTH_SECRET;
 
-  const sessionToken = nextAuthSecret
-    ? await encode({
-        token: {
-          sub: user.id,
-          phone: patientPhone,
-          locale: user.localePreference,
-          role: PATIENT_ROLE,
-        },
-        secret: nextAuthSecret,
-        maxAge: 60 * 60,
-      })
-    : randomUUID();
+  if (!nextAuthSecret) {
+    return NextResponse.json({ error: "Session token service unavailable" }, { status: 503 });
+  }
+
+  const sessionToken = await encode({
+    token: {
+      sub: user.id,
+      phone: patientPhone,
+      locale: user.localePreference,
+      role: PATIENT_ROLE,
+    },
+    secret: nextAuthSecret,
+    maxAge: SESSION_TOKEN_MAX_AGE_SECONDS,
+  });
 
   return NextResponse.json({
     success: true,

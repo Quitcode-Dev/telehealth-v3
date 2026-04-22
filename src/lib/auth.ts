@@ -3,42 +3,14 @@ import type {Adapter} from "next-auth/adapters";
 import type {NextAuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/src/lib/prisma";
-import {hashOtpCode, isValidOtpCode} from "@/src/lib/otp";
+import {isValidOtpCode, verifyAndConsumeOtpCode} from "@/src/lib/otp";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60;
 const PATIENT_ROLE = "patient";
 
 async function verifyOtpCode(phoneNumber: string, code: string) {
-  const record = await prisma.otpCode.findFirst({
-    where: {
-      phoneNumber,
-      consumedAt: null,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  if (!record || record.expiresAt.getTime() <= Date.now()) {
-    return false;
-  }
-
-  const codeHash = hashOtpCode(phoneNumber, code);
-
-  if (record.otpHash !== codeHash) {
-    return false;
-  }
-
-  await prisma.otpCode.update({
-    where: {
-      id: record.id,
-    },
-    data: {
-      consumedAt: new Date(),
-    },
-  });
-
-  return true;
+  const result = await verifyAndConsumeOtpCode(phoneNumber, code);
+  return result.ok;
 }
 
 export const authOptions: NextAuthOptions = {
