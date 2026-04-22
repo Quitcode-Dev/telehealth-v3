@@ -1,6 +1,6 @@
 import {defineRouting} from "next-intl/routing";
 
-const LOCALE_COOKIE_MAX_AGE_365_DAYS_SECONDS = 31_536_000;
+const LOCALE_COOKIE_MAX_AGE_SECONDS = 31_536_000;
 
 export const routing = defineRouting({
   locales: ["en", "uk"],
@@ -8,7 +8,7 @@ export const routing = defineRouting({
   localePrefix: "always",
   localeCookie: {
     name: "NEXT_LOCALE",
-    maxAge: LOCALE_COOKIE_MAX_AGE_365_DAYS_SECONDS,
+    maxAge: LOCALE_COOKIE_MAX_AGE_SECONDS,
     sameSite: "lax",
   },
 });

@@ -41,8 +41,12 @@ export function LanguageSwitcher() {
               type="button"
               aria-label={switchLabel}
               aria-pressed={isSelected}
-              disabled={isPending || isSelected}
+              disabled={isPending}
               onClick={() => {
+                if (isSelected) {
+                  return;
+                }
+
                 startTransition(() => {
                   router.replace(pathname, {locale: nextLocale});
                 });
