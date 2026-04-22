@@ -4,29 +4,42 @@ import type {NextAuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/src/lib/prisma";
 
-const OTP_CODE_LENGTH = 6;
-
 function isValidOtpCode(code: string) {
   return /^\d{6}$/.test(code);
 }
 
-function verifyOtpCode(code: string) {
-  const expectedCode = process.env.SMS_OTP_CODE;
+const SESSION_MAX_AGE_SECONDS = 60 * 60;
+const PATIENT_ROLE = "patient";
 
-  if (!expectedCode) {
+function verifyOtpCode(phoneNumber: string, code: string) {
+  const rawOtpStore = process.env.SMS_OTP_CODES_JSON;
+
+  if (!rawOtpStore) {
     return false;
   }
 
-  return code === expectedCode;
+  try {
+    const otpStore = JSON.parse(rawOtpStore) as Record<string, {code: string; expiresAt: string}>;
+    const record = otpStore[phoneNumber];
+
+    if (!record || record.code !== code) {
+      return false;
+    }
+
+    return new Date(record.expiresAt).getTime() > Date.now();
+  } catch {
+    return false;
+  }
 }
 
 export const authOptions: NextAuthOptions = {
+  // `@auth/prisma-adapter` and `next-auth` adapter types currently differ, so a cast is required.
   adapter: process.env.DATABASE_URL
     ? (PrismaAdapter(prisma as never) as Adapter)
     : undefined,
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60,
+    maxAge: SESSION_MAX_AGE_SECONDS,
   },
   pages: {
     signIn: "/login",
@@ -46,11 +59,11 @@ export const authOptions: NextAuthOptions = {
         const phoneNumber = credentials?.phoneNumber?.trim();
         const otpCode = credentials?.otpCode?.trim();
 
-        if (!phoneNumber || !otpCode || otpCode.length !== OTP_CODE_LENGTH || !isValidOtpCode(otpCode)) {
+        if (!phoneNumber || !otpCode || !isValidOtpCode(otpCode)) {
           return null;
         }
 
-        if (!verifyOtpCode(otpCode)) {
+        if (!verifyOtpCode(phoneNumber, otpCode)) {
           return null;
         }
 
@@ -79,14 +92,18 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const patientPhone = user.phoneNumber ?? user.patientProfile.phoneNumber ?? phoneNumber;
+        const patientPhone = user.phoneNumber ?? user.patientProfile.phoneNumber;
+
+        if (!patientPhone) {
+          return null;
+        }
 
         return {
           id: user.id,
           email: user.email,
           phone: patientPhone,
           locale: user.localePreference,
-          role: "patient",
+          role: PATIENT_ROLE,
         };
       },
     }),
@@ -104,10 +121,19 @@ export const authOptions: NextAuthOptions = {
     },
     async session({session, token}) {
       if (session.user) {
-        session.user.id = (token.id as string | undefined) ?? token.sub ?? "";
-        session.user.phone = token.phone as string | null;
-        session.user.locale = token.locale as string;
-        session.user.role = token.role as string;
+        const userId = typeof token.id === "string" ? token.id : token.sub;
+
+        if (!userId) {
+          console.warn("Session token missing user ID; returning session without user metadata", {
+            tokenSub: token.sub,
+          });
+          return session;
+        }
+
+        session.user.id = userId;
+        session.user.phone = typeof token.phone === "string" ? token.phone : null;
+        session.user.locale = typeof token.locale === "string" ? token.locale : "en";
+        session.user.role = typeof token.role === "string" ? token.role : PATIENT_ROLE;
       }
 
       return session;

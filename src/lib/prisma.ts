@@ -13,7 +13,11 @@ const createPrismaClient = () => {
     return new PrismaClient({ adapter });
   }
 
-  return {} as PrismaClient;
+  return new Proxy({} as PrismaClient, {
+    get() {
+      throw new Error("DATABASE_URL must be set before using PrismaClient");
+    },
+  });
 };
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

@@ -5,6 +5,7 @@ import {routing} from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
+// Paths are normalized by removing locale prefixes before public route checks.
 const PUBLIC_PAGES = new Set(["/", "/login"]);
 
 function getPathWithoutLocale(pathname: string) {
@@ -26,7 +27,7 @@ function getLocale(pathname: string) {
     : routing.defaultLocale;
 }
 
-export default async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const normalizedPath = getPathWithoutLocale(pathname);
 
