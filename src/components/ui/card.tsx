@@ -13,7 +13,7 @@ export function CardHeader({className, ...props}: CardComponentProps) {
 }
 
 export function CardTitle({className, ...props}: CardComponentProps) {
-  return <h1 className={["text-2xl font-semibold leading-none tracking-tight", className].filter(Boolean).join(" ")} {...props} />;
+  return <h2 className={["text-2xl font-semibold leading-none tracking-tight", className].filter(Boolean).join(" ")} {...props} />;
 }
 
 export function CardDescription({className, ...props}: CardComponentProps) {

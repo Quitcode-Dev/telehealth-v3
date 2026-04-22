@@ -243,7 +243,7 @@ export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
                       inputMode="numeric"
                       maxLength={1}
                       autoComplete={index === 0 ? "one-time-code" : undefined}
-                      className="h-12 w-12 p-0 text-center text-lg"
+                      className="h-12 min-w-0 flex-1 p-0 text-center text-lg"
                       disabled={isSubmitting}
                       aria-label={t("otpDigitLabel", {index: index + 1})}
                       required
