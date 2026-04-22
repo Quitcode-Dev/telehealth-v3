@@ -13,14 +13,17 @@ export function LanguageSwitcher() {
 
   return (
     <nav aria-label="Language switcher" className="w-full flex justify-end p-4">
-      <div role="group" aria-label="Language switcher" className="inline-flex rounded-full border border-black/[.08] dark:border-white/[.145]">
+      <div role="group" className="inline-flex rounded-full border border-black/[.08] dark:border-white/[.145]">
         {routing.locales.map((nextLocale) => {
           const isSelected = locale === nextLocale;
+          const label = nextLocale === "uk" ? "UK" : "EN";
+          const switchLabel = nextLocale === "uk" ? "Switch to Ukrainian" : "Switch to English";
 
           return (
             <button
               key={nextLocale}
               type="button"
+              aria-label={switchLabel}
               aria-pressed={isSelected}
               disabled={isPending || isSelected}
               onClick={() => {
@@ -30,7 +33,7 @@ export function LanguageSwitcher() {
               }}
               className="h-10 px-4 text-sm font-semibold tracking-wide text-black disabled:opacity-100 disabled:bg-black disabled:text-white dark:text-zinc-50 dark:disabled:bg-zinc-50 dark:disabled:text-black"
             >
-              {nextLocale === "uk" ? "UK" : "EN"}
+              {label}
             </button>
           );
         })}
