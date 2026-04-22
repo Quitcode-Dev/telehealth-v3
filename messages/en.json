@@ -67,5 +67,47 @@
       "registrationFailed": "We couldn't create your account. Please try again.",
       "otpFailed": "Your account was created, but OTP sending failed. Please try logging in."
     }
+  },
+  "ProfilePage": {
+    "title": "Patient profile",
+    "description": "Review and update your demographic, insurance, medical, and communication details.",
+    "loading": "Loading profile...",
+    "saveSuccess": "Profile updated successfully.",
+    "actions": {
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "saving": "Saving..."
+    },
+    "sections": {
+      "demographics": {"title": "Demographics"},
+      "contact": {"title": "Contact information"},
+      "insurance": {"title": "Insurance"},
+      "medical": {"title": "Medical summary"},
+      "communication": {"title": "Communication preferences"}
+    },
+    "fields": {
+      "fullName": "Full name",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "dateOfBirth": "Date of birth",
+      "gender": "Gender",
+      "phoneNumber": "Phone number",
+      "emergencyContactName": "Emergency contact name",
+      "emergencyContactPhone": "Emergency contact phone",
+      "insuranceProviderName": "Insurance provider",
+      "insurancePolicyNumber": "Policy number",
+      "insuranceGroupNumber": "Group number",
+      "allergies": "Allergies",
+      "currentMedications": "Current medications",
+      "prefersPushNotifications": "Push notifications",
+      "prefersSmsNotifications": "SMS notifications",
+      "prefersViberNotifications": "Viber notifications"
+    },
+    "errors": {
+      "loadFailed": "Unable to load profile data.",
+      "saveFailed": "Unable to save profile changes."
+    }
   }
 }
