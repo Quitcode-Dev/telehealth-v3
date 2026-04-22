@@ -8,7 +8,7 @@ if (!connectionString) {
 }
 
 const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({adapter});
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.$transaction([
