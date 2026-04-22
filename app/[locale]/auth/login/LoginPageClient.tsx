@@ -7,13 +7,11 @@ import {type KeyboardEvent, useEffect, useMemo, useRef, useState} from "react";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Input} from "@/src/components/ui/input";
+import {OTP_ERRORS} from "@/src/lib/otp-errors";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
 const UKRAINIAN_PHONE_PATTERN = /^\+380\d{9}$/;
-const OTP_RATE_LIMIT_ERROR = "Too many OTP requests. Please try again later.";
-const OTP_INCORRECT_ERROR = "Incorrect OTP code";
-const OTP_EXPIRED_ERROR = "OTP has expired";
 
 type LoginStep = "phone" | "otp";
 
@@ -31,7 +29,11 @@ function parseApiError(payload: unknown) {
 }
 
 function getSendOtpErrorMessage(t: ReturnType<typeof useTranslations>, error: string | null | undefined) {
-  return error === OTP_RATE_LIMIT_ERROR ? t("errors.tooManyRequests") : t("errors.sendOtpFailed");
+  return error === OTP_ERRORS.TOO_MANY_REQUESTS ? t("errors.tooManyRequests") : t("errors.sendOtpFailed");
+}
+
+function getVerifyOtpErrorMessage(t: ReturnType<typeof useTranslations>, error: string | null | undefined) {
+  return error === OTP_ERRORS.INCORRECT || error === OTP_ERRORS.EXPIRED ? t("errors.otpIncorrect") : t("errors.verifyOtpFailed");
 }
 
 export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
@@ -153,7 +155,7 @@ export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
     if (!verifyResponse.ok) {
       const payload = await verifyResponse.json().catch(() => null);
       const apiError = parseApiError(payload);
-      setErrorMessage(apiError === OTP_INCORRECT_ERROR || apiError === OTP_EXPIRED_ERROR ? t("errors.otpIncorrect") : t("errors.verifyOtpFailed"));
+      setErrorMessage(getVerifyOtpErrorMessage(t, apiError));
       setIsSubmitting(false);
       return;
     }
