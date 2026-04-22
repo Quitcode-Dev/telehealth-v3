@@ -30,6 +30,11 @@ model Patient {
   phoneNumber              String?
   emergencyContactName     String?
   emergencyContactPhone    String?
+  allergies                String?
+  currentMedications       String?
+  prefersPushNotifications Boolean             @default(true)
+  prefersSmsNotifications  Boolean             @default(false)
+  prefersViberNotifications Boolean             @default(false)
   appointments             Appointment[]
   labResults               LabResult[]
   insurancePolicies        InsurancePolicy[]

@@ -67,5 +67,47 @@
       "registrationFailed": "Не вдалося створити обліковий запис. Спробуйте ще раз.",
       "otpFailed": "Обліковий запис створено, але не вдалося надіслати OTP. Спробуйте увійти."
     }
+  },
+  "ProfilePage": {
+    "title": "Профіль пацієнта",
+    "description": "Переглядайте та оновлюйте демографічні, страхові, медичні та комунікаційні дані.",
+    "loading": "Завантаження профілю...",
+    "saveSuccess": "Профіль успішно оновлено.",
+    "actions": {
+      "edit": "Редагувати",
+      "cancel": "Скасувати",
+      "save": "Зберегти зміни",
+      "saving": "Збереження..."
+    },
+    "sections": {
+      "demographics": {"title": "Демографія"},
+      "contact": {"title": "Контактна інформація"},
+      "insurance": {"title": "Страхування"},
+      "medical": {"title": "Медичне резюме"},
+      "communication": {"title": "Налаштування комунікації"}
+    },
+    "fields": {
+      "fullName": "Повне ім'я",
+      "firstName": "Ім'я",
+      "lastName": "Прізвище",
+      "email": "Email",
+      "dateOfBirth": "Дата народження",
+      "gender": "Стать",
+      "phoneNumber": "Номер телефону",
+      "emergencyContactName": "Контакт для екстреного зв'язку",
+      "emergencyContactPhone": "Телефон екстреного контакту",
+      "insuranceProviderName": "Страховий провайдер",
+      "insurancePolicyNumber": "Номер полісу",
+      "insuranceGroupNumber": "Номер групи",
+      "allergies": "Алергії",
+      "currentMedications": "Поточні ліки",
+      "prefersPushNotifications": "Push-сповіщення",
+      "prefersSmsNotifications": "SMS-сповіщення",
+      "prefersViberNotifications": "Viber-сповіщення"
+    },
+    "errors": {
+      "loadFailed": "Не вдалося завантажити дані профілю.",
+      "saveFailed": "Не вдалося зберегти зміни профілю."
+    }
   }
 }
