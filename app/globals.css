@@ -2,26 +2,87 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #005eb8;
+  --primary-foreground: #ffffff;
+  --secondary: #e0f2fe;
+  --secondary-foreground: #0f172a;
+  --muted: #f3f4f6;
+  --muted-foreground: #4b5563;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --border: #d1d5db;
+  --input: #d1d5db;
+  --ring: #005eb8;
+  --radius: 0.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --font-sans: Arial, Helvetica, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b1220;
+    --foreground: #f8fafc;
+    --card: #111827;
+    --card-foreground: #f8fafc;
+    --popover: #111827;
+    --popover-foreground: #f8fafc;
+    --primary: #60a5fa;
+    --primary-foreground: #0b1220;
+    --secondary: #1f2937;
+    --secondary-foreground: #f8fafc;
+    --muted: #1f2937;
+    --muted-foreground: #d1d5db;
+    --destructive: #f87171;
+    --destructive-foreground: #111827;
+    --border: #374151;
+    --input: #374151;
+    --ring: #60a5fa;
   }
+}
+
+html {
+  font-size: 16px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
 }
