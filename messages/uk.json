@@ -1,0 +1,14 @@
+{
+  "Metadata": {
+    "title": "Telehealth V3",
+    "description": "Портал пацієнта MedBridge Connect"
+  },
+  "HomePage": {
+    "nextLogoAlt": "Логотип Next.js",
+    "title": "Щоб почати, відредагуйте файл page.tsx.",
+    "description": "Потрібна стартова точка або більше інструкцій? Перейдіть до <templates>Шаблонів</templates> або <learning>Навчального</learning> центру.",
+    "vercelLogoAlt": "Логотип Vercel",
+    "deployNow": "Розгорнути",
+    "documentation": "Документація"
+  }
+}
