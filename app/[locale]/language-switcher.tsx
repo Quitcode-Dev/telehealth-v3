@@ -49,7 +49,9 @@ export function LanguageSwitcher() {
               }}
               className={buttonClassName}
             >
-              {isSelected ? <span aria-hidden="true">● </span> : null}
+              {isSelected ? (
+                <span aria-hidden="true" className="mr-1 inline-block h-2 w-2 rounded-full bg-current" />
+              ) : null}
               {label}
             </button>
           );
