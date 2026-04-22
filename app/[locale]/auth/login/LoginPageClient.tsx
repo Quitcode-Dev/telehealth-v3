@@ -11,6 +11,9 @@ import {Input} from "@/src/components/ui/input";
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
 const UKRAINIAN_PHONE_PATTERN = /^\+380\d{9}$/;
+const OTP_RATE_LIMIT_ERROR = "Too many OTP requests. Please try again later.";
+const OTP_INCORRECT_ERROR = "Incorrect OTP code";
+const OTP_EXPIRED_ERROR = "OTP has expired";
 
 type LoginStep = "phone" | "otp";
 
@@ -25,6 +28,10 @@ function parseApiError(payload: unknown) {
 
   const error = (payload as {error?: unknown}).error;
   return typeof error === "string" ? error : null;
+}
+
+function getSendOtpErrorMessage(t: ReturnType<typeof useTranslations>, error: string | null | undefined) {
+  return error === OTP_RATE_LIMIT_ERROR ? t("errors.tooManyRequests") : t("errors.sendOtpFailed");
 }
 
 export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
@@ -93,7 +100,7 @@ export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
     setIsSubmitting(false);
 
     if (!sendResult.ok) {
-      setErrorMessage(sendResult.error === "Too many OTP requests. Please try again later." ? t("errors.tooManyRequests") : t("errors.sendOtpFailed"));
+      setErrorMessage(getSendOtpErrorMessage(t, sendResult.error));
       return;
     }
 
@@ -146,9 +153,7 @@ export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
     if (!verifyResponse.ok) {
       const payload = await verifyResponse.json().catch(() => null);
       const apiError = parseApiError(payload);
-      setErrorMessage(
-        apiError === "Incorrect OTP code" || apiError === "OTP has expired" ? t("errors.otpIncorrect") : t("errors.verifyOtpFailed"),
-      );
+      setErrorMessage(apiError === OTP_INCORRECT_ERROR || apiError === OTP_EXPIRED_ERROR ? t("errors.otpIncorrect") : t("errors.verifyOtpFailed"));
       setIsSubmitting(false);
       return;
     }
@@ -181,7 +186,7 @@ export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
     setIsSubmitting(false);
 
     if (!sendResult.ok) {
-      setErrorMessage(sendResult.error === "Too many OTP requests. Please try again later." ? t("errors.tooManyRequests") : t("errors.sendOtpFailed"));
+      setErrorMessage(getSendOtpErrorMessage(t, sendResult.error));
       return;
     }
 
@@ -194,7 +199,7 @@ export function LoginPageClient({callbackUrl}: LoginPageClientProps) {
     <div className="mx-auto flex w-full max-w-md flex-col justify-center py-12">
       <Card>
         <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
+          <CardTitle as="h1">{t("title")}</CardTitle>
           <CardDescription>{step === "phone" ? t("phoneStepDescription") : t("otpStepDescription", {phoneNumber})}</CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,6 +1,9 @@
 import type {HTMLAttributes} from "react";
 
 type CardComponentProps = HTMLAttributes<HTMLDivElement>;
+type CardTitleProps = CardComponentProps & {
+  as?: "h1" | "h2" | "h3" | "h4" | "p" | "div";
+};
 
 const cardBaseClassName = "rounded-lg border border-border bg-card text-card-foreground shadow-sm";
 
@@ -12,8 +15,8 @@ export function CardHeader({className, ...props}: CardComponentProps) {
   return <div className={["flex flex-col space-y-1.5 p-6", className].filter(Boolean).join(" ")} {...props} />;
 }
 
-export function CardTitle({className, ...props}: CardComponentProps) {
-  return <h2 className={["text-2xl font-semibold leading-none tracking-tight", className].filter(Boolean).join(" ")} {...props} />;
+export function CardTitle({as: Component = "h2", className, ...props}: CardTitleProps) {
+  return <Component className={["text-2xl font-semibold leading-none tracking-tight", className].filter(Boolean).join(" ")} {...props} />;
 }
 
 export function CardDescription({className, ...props}: CardComponentProps) {
