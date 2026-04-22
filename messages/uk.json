@@ -10,5 +10,30 @@
     "vercelLogoAlt": "Логотип Vercel",
     "deployNow": "Розгорнути",
     "documentation": "Документація"
+  },
+  "LoginPage": {
+    "title": "Вхід пацієнта",
+    "phoneStepDescription": "Введіть ваш український номер телефону, щоб отримати OTP-код.",
+    "otpStepDescription": "Введіть 6-значний код, надісланий на {phoneNumber}.",
+    "phoneLabel": "Номер телефону",
+    "phonePlaceholder": "+380XXXXXXXXX",
+    "sendOtp": "Надіслати OTP-код",
+    "sendingOtp": "Надсилаємо код...",
+    "otpLabel": "Одноразовий пароль",
+    "otpDigitLabel": "Цифра OTP {index}",
+    "verifyOtp": "Підтвердити код і продовжити",
+    "verifyingOtp": "Перевіряємо код...",
+    "resendOtp": "Надіслати код повторно",
+    "resendCountdown": "Повторне надсилання через {seconds} с",
+    "resendReady": "Можна надіслати код повторно.",
+    "errors": {
+      "phoneFormat": "Введіть коректний український номер у форматі +380XXXXXXXXX.",
+      "sendOtpFailed": "Не вдалося надіслати OTP-код. Спробуйте ще раз.",
+      "tooManyRequests": "Забагато запитів OTP. Спробуйте пізніше.",
+      "otpFormat": "Введіть повний 6-значний OTP-код.",
+      "otpIncorrect": "Неправильний або прострочений OTP-код.",
+      "verifyOtpFailed": "Не вдалося перевірити OTP-код. Спробуйте ще раз.",
+      "signInFailed": "Не вдалося увійти після перевірки OTP. Спробуйте ще раз."
+    }
   }
 }

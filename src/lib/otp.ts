@@ -43,7 +43,16 @@ export type OtpVerificationResult =
   | { ok: true }
   | { ok: false; reason: "expired" | "incorrect" };
 
-export async function verifyAndConsumeOtpCode(phoneNumber: string, otpCode: string): Promise<OtpVerificationResult> {
+type VerifyOtpOptions = {
+  consume?: boolean;
+};
+
+export async function verifyAndConsumeOtpCode(
+  phoneNumber: string,
+  otpCode: string,
+  options?: VerifyOtpOptions,
+): Promise<OtpVerificationResult> {
+  const consume = options?.consume ?? true;
   const record = await prisma.otpCode.findFirst({
     where: {
       phoneNumber,
@@ -68,14 +77,16 @@ export async function verifyAndConsumeOtpCode(phoneNumber: string, otpCode: stri
     return { ok: false, reason: "incorrect" };
   }
 
-  await prisma.otpCode.update({
-    where: {
-      id: record.id,
-    },
-    data: {
-      consumedAt: new Date(),
-    },
-  });
+  if (consume) {
+    await prisma.otpCode.update({
+      where: {
+        id: record.id,
+      },
+      data: {
+        consumedAt: new Date(),
+      },
+    });
+  }
 
   return { ok: true };
 }

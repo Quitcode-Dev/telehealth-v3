@@ -11,6 +11,7 @@ import {
   OTP_TTL_MS,
   verifyAndConsumeOtpCode,
 } from "@/src/lib/otp";
+import {OTP_ERRORS} from "@/src/lib/otp-errors";
 import { getSmsProvider } from "@/src/lib/sms-provider";
 
 const PATIENT_ROLE = "patient";
@@ -38,7 +39,7 @@ async function sendOtp(request: Request) {
     rawPhoneNumber.trim().length < MIN_PHONE_NUMBER_LENGTH ||
     !isValidPhoneNumber(rawPhoneNumber)
   ) {
-    return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+    return NextResponse.json({ error: OTP_ERRORS.INVALID_PHONE }, { status: 400 });
   }
 
   const phoneNumber = normalizePhoneNumber(rawPhoneNumber);
@@ -55,7 +56,7 @@ async function sendOtp(request: Request) {
   });
 
   if (requestsInWindow >= OTP_RATE_LIMIT_MAX_REQUESTS) {
-    return NextResponse.json({ error: "Too many OTP requests. Please try again later." }, { status: 429 });
+    return NextResponse.json({ error: OTP_ERRORS.TOO_MANY_REQUESTS }, { status: 429 });
   }
 
   const otpCode = generateOtpCode();
@@ -91,21 +92,21 @@ async function verifyOtp(request: Request) {
   const otpCode = rawOtpCode.trim();
 
   if (!isValidPhoneNumber(phoneNumber)) {
-    return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+    return NextResponse.json({ error: OTP_ERRORS.INVALID_PHONE }, { status: 400 });
   }
 
   if (!isValidOtpCode(otpCode)) {
     return NextResponse.json({ error: "Invalid OTP format" }, { status: 400 });
   }
 
-  const otpVerification = await verifyAndConsumeOtpCode(phoneNumber, otpCode);
+  const otpVerification = await verifyAndConsumeOtpCode(phoneNumber, otpCode, { consume: false });
 
   if (!otpVerification.ok && otpVerification.reason === "expired") {
-    return NextResponse.json({ error: "OTP has expired" }, { status: 401 });
+    return NextResponse.json({ error: OTP_ERRORS.EXPIRED }, { status: 401 });
   }
 
   if (!otpVerification.ok) {
-    return NextResponse.json({ error: "Incorrect OTP code" }, { status: 401 });
+    return NextResponse.json({ error: OTP_ERRORS.INCORRECT }, { status: 401 });
   }
 
   const users = await prisma.user.findMany({
