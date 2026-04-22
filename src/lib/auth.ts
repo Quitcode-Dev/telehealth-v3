@@ -3,33 +3,42 @@ import type {Adapter} from "next-auth/adapters";
 import type {NextAuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/src/lib/prisma";
-
-function isValidOtpCode(code: string) {
-  return /^\d{6}$/.test(code);
-}
+import {hashOtpCode, isValidOtpCode} from "@/src/lib/otp";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60;
 const PATIENT_ROLE = "patient";
 
-function verifyOtpCode(phoneNumber: string, code: string) {
-  const rawOtpStore = process.env.SMS_OTP_CODES_JSON;
+async function verifyOtpCode(phoneNumber: string, code: string) {
+  const record = await prisma.otpCode.findFirst({
+    where: {
+      phoneNumber,
+      consumedAt: null,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-  if (!rawOtpStore) {
+  if (!record || record.expiresAt.getTime() <= Date.now()) {
     return false;
   }
 
-  try {
-    const otpStore = JSON.parse(rawOtpStore) as Record<string, {code: string; expiresAt: string}>;
-    const record = otpStore[phoneNumber];
+  const codeHash = hashOtpCode(phoneNumber, code);
 
-    if (!record || record.code !== code) {
-      return false;
-    }
-
-    return new Date(record.expiresAt).getTime() > Date.now();
-  } catch {
+  if (record.otpHash !== codeHash) {
     return false;
   }
+
+  await prisma.otpCode.update({
+    where: {
+      id: record.id,
+    },
+    data: {
+      consumedAt: new Date(),
+    },
+  });
+
+  return true;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -63,7 +72,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (!verifyOtpCode(phoneNumber, otpCode)) {
+        if (!(await verifyOtpCode(phoneNumber, otpCode))) {
           return null;
         }
 
