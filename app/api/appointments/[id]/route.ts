@@ -122,7 +122,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       });
 
       return NextResponse.json(cancelled);
-    } catch {
+    } catch (error) {
+      console.error("Failed to cancel appointment", error);
       return NextResponse.json({error: "Failed to cancel appointment"}, {status: 502});
     }
   }
@@ -164,7 +165,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
 
     return NextResponse.json(updated);
-  } catch {
+  } catch (error) {
+    console.error("Failed to reschedule appointment", error);
     availabilityService.releaseSlot(newSlotId, appointment.patientId);
     return NextResponse.json({error: "Failed to reschedule appointment"}, {status: 502});
   }

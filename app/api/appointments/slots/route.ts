@@ -37,7 +37,8 @@ export async function GET(request: Request) {
       : await availabilityService.getAvailableSlots(specialty, {startDate: date, endDate: date});
 
     return NextResponse.json({slots});
-  } catch {
+  } catch (error) {
+    console.error("Failed to fetch appointment slots", error);
     return NextResponse.json({error: "Failed to fetch appointment slots"}, {status: 502});
   }
 }

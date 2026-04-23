@@ -112,7 +112,8 @@ export async function POST(request: Request) {
       scheduledAt: appointment.scheduledAt,
       confirmationReference: helsiBooking.id,
     }, {status: 201});
-  } catch {
+  } catch (error) {
+    console.error("Failed to create appointment", error);
     availabilityService.releaseSlot(slotId, patientId);
     return NextResponse.json({error: "Failed to create appointment"}, {status: 502});
   }
