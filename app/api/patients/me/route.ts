@@ -32,57 +32,105 @@ async function getUserId() {
   return typeof userId === "string" ? userId : null;
 }
 
-async function getProfile(userId: string) {
-  return prisma.user.findUnique({
-    where: {id: userId},
+type AccessResolution = {
+  patientId: string;
+  isProxyView: boolean;
+};
+
+async function resolvePatientAccess(userId: string, requestedPatientId: string | null): Promise<AccessResolution | null> {
+  const ownProfile = await prisma.patient.findUnique({
+    where: {userId},
+    select: {id: true},
+  });
+
+  if (!ownProfile) {
+    return null;
+  }
+
+  if (!requestedPatientId || requestedPatientId === ownProfile.id) {
+    return {patientId: ownProfile.id, isProxyView: false};
+  }
+
+  const relationship = await prisma.proxyRelationship.findFirst({
+    where: {
+      proxyUserId: userId,
+      patientId: requestedPatientId,
+      status: "APPROVED",
+      isActive: true,
+      startsAt: {
+        lte: new Date(),
+      },
+      OR: [
+        {endsAt: null},
+        {
+          endsAt: {
+            gt: new Date(),
+          },
+        },
+      ],
+    },
+    select: {id: true},
+  });
+
+  if (!relationship) {
+    return null;
+  }
+
+  return {patientId: requestedPatientId, isProxyView: true};
+}
+
+async function getProfile(patientId: string) {
+  return prisma.patient.findUnique({
+    where: {id: patientId},
     select: {
       id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      patientProfile: {
+      dateOfBirth: true,
+      gender: true,
+      phoneNumber: true,
+      emergencyContactName: true,
+      emergencyContactPhone: true,
+      allergies: true,
+      currentMedications: true,
+      prefersPushNotifications: true,
+      prefersSmsNotifications: true,
+      prefersViberNotifications: true,
+      insurancePolicies: {
+        where: {isPrimary: true},
+        select: {
+          providerName: true,
+          policyNumber: true,
+          groupNumber: true,
+        },
+        take: 1,
+      },
+      user: {
         select: {
           id: true,
-          dateOfBirth: true,
-          gender: true,
-          phoneNumber: true,
-          emergencyContactName: true,
-          emergencyContactPhone: true,
-          allergies: true,
-          currentMedications: true,
-          prefersPushNotifications: true,
-          prefersSmsNotifications: true,
-          prefersViberNotifications: true,
-          insurancePolicies: {
-            where: {isPrimary: true},
-            select: {
-              providerName: true,
-              policyNumber: true,
-              groupNumber: true,
-            },
-            take: 1,
-          },
+          firstName: true,
+          lastName: true,
+          email: true,
         },
       },
     },
   });
 }
 
-function mapProfile(profile: NonNullable<Awaited<ReturnType<typeof getProfile>>>) {
-  const patientProfile = profile.patientProfile;
-  const primaryInsurance = patientProfile?.insurancePolicies[0];
+function mapProfile(profile: NonNullable<Awaited<ReturnType<typeof getProfile>>>, access: AccessResolution) {
+  const primaryInsurance = profile.insurancePolicies[0];
 
   return {
-    userId: profile.id,
+    userId: profile.user.id,
+    patientId: profile.id,
+    isProxyView: access.isProxyView,
     demographics: {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: profile.email,
-      dateOfBirth: patientProfile?.dateOfBirth?.toISOString().slice(0, 10) ?? null,
-      gender: patientProfile?.gender ?? null,
-      phoneNumber: patientProfile?.phoneNumber ?? null,
-      emergencyContactName: patientProfile?.emergencyContactName ?? "",
-      emergencyContactPhone: patientProfile?.emergencyContactPhone ?? "",
+      firstName: profile.user.firstName,
+      lastName: profile.user.lastName,
+      email: profile.user.email,
+      dateOfBirth: profile.dateOfBirth?.toISOString().slice(0, 10) ?? null,
+      gender: profile.gender ?? null,
+      phoneNumber: profile.phoneNumber ?? null,
+      emergencyContactName: profile.emergencyContactName ?? "",
+      emergencyContactPhone: profile.emergencyContactPhone ?? "",
     },
     insurance: {
       providerName: primaryInsurance?.providerName ?? "",
@@ -90,18 +138,18 @@ function mapProfile(profile: NonNullable<Awaited<ReturnType<typeof getProfile>>>
       groupNumber: primaryInsurance?.groupNumber ?? "",
     },
     medicalSummary: {
-      allergies: patientProfile?.allergies ?? "",
-      currentMedications: patientProfile?.currentMedications ?? "",
+      allergies: profile.allergies ?? "",
+      currentMedications: profile.currentMedications ?? "",
     },
     communicationPreferences: {
-      push: patientProfile?.prefersPushNotifications ?? true,
-      sms: patientProfile?.prefersSmsNotifications ?? false,
-      viber: patientProfile?.prefersViberNotifications ?? false,
+      push: profile.prefersPushNotifications ?? true,
+      sms: profile.prefersSmsNotifications ?? false,
+      viber: profile.prefersViberNotifications ?? false,
     },
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({error: "Patient profile is unavailable"}, {status: 503});
   }
@@ -112,13 +160,23 @@ export async function GET() {
     return unauthorized();
   }
 
-  const profile = await getProfile(userId);
+  const requestedProfileIdRaw = new URL(request.url).searchParams.get("profileId");
+  const requestedProfileId = requestedProfileIdRaw && z.uuid().safeParse(requestedProfileIdRaw).success
+    ? requestedProfileIdRaw
+    : null;
+  const access = await resolvePatientAccess(userId, requestedProfileId);
 
-  if (!profile || !profile.patientProfile) {
+  if (!access) {
     return NextResponse.json({error: "Profile not found"}, {status: 404});
   }
 
-  return NextResponse.json(mapProfile(profile));
+  const profile = await getProfile(access.patientId);
+
+  if (!profile) {
+    return NextResponse.json({error: "Profile not found"}, {status: 404});
+  }
+
+  return NextResponse.json(mapProfile(profile, access));
 }
 
 export async function PATCH(request: Request) {
@@ -139,12 +197,9 @@ export async function PATCH(request: Request) {
     return NextResponse.json({error: "Invalid profile payload"}, {status: 400});
   }
 
-  const profile = await prisma.patient.findUnique({
-    where: {userId},
-    select: {id: true},
-  });
+  const access = await resolvePatientAccess(userId, null);
 
-  if (!profile) {
+  if (!access) {
     return NextResponse.json({error: "Profile not found"}, {status: 404});
   }
 
@@ -225,7 +280,7 @@ export async function PATCH(request: Request) {
 
     if (Object.keys(patientUpdateData).length > 0) {
       await tx.patient.update({
-        where: {id: profile.id},
+        where: {id: access.patientId},
         data: patientUpdateData,
       });
     }
@@ -238,7 +293,7 @@ export async function PATCH(request: Request) {
     if (hasInsuranceUpdate) {
       const existingPrimary = await tx.insurancePolicy.findFirst({
         where: {
-          patientId: profile.id,
+          patientId: access.patientId,
           isPrimary: true,
         },
         select: {id: true},
@@ -275,7 +330,7 @@ export async function PATCH(request: Request) {
           isPrimary: boolean;
           groupNumber?: string;
         } = {
-          patientId: profile.id,
+          patientId: access.patientId,
           providerName: data.insuranceProviderName,
           policyNumber: data.insurancePolicyNumber,
           isPrimary: true,
@@ -292,11 +347,11 @@ export async function PATCH(request: Request) {
     }
   });
 
-  const updatedProfile = await getProfile(userId);
+  const updatedProfile = await getProfile(access.patientId);
 
-  if (!updatedProfile || !updatedProfile.patientProfile) {
+  if (!updatedProfile) {
     return NextResponse.json({error: "Profile not found"}, {status: 404});
   }
 
-  return NextResponse.json(mapProfile(updatedProfile));
+  return NextResponse.json(mapProfile(updatedProfile, access));
 }

@@ -5,6 +5,7 @@ import {useTranslations} from "next-intl";
 import {useEffect, useMemo, useState} from "react";
 import {useForm, useWatch} from "react-hook-form";
 import {z} from "zod";
+import {useActiveProfile} from "@/src/components/family/ActiveProfileContext";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Form} from "@/src/components/ui/form";
@@ -32,6 +33,8 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 type ProfileResponse = {
+  patientId: string;
+  isProxyView: boolean;
   demographics: {
     firstName: string;
     lastName: string;
@@ -78,10 +81,12 @@ function getErrorMessage(error: unknown) {
 
 export default function ProfilePage() {
   const t = useTranslations("ProfilePage");
+  const {activeProfileId} = useActiveProfile();
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingSection, setIsSavingSection] = useState<EditableSection | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isProxyView, setIsProxyView] = useState(false);
   const [editingSections, setEditingSections] = useState<Record<EditableSection, boolean>>({
     contact: false,
     insurance: false,
@@ -113,7 +118,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchProfile() {
-      const response = await fetch("/api/patients/me");
+      const query = activeProfileId ? `?profileId=${encodeURIComponent(activeProfileId)}` : "";
+      const response = await fetch(`/api/patients/me${query}`);
 
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -124,6 +130,15 @@ export default function ProfilePage() {
       }
 
       const payload = (await response.json()) as ProfileResponse;
+      setIsProxyView(payload.isProxyView);
+      if (payload.isProxyView) {
+        setEditingSections({
+          contact: false,
+          insurance: false,
+          medical: false,
+          communication: false,
+        });
+      }
       form.reset({
         firstName: payload.demographics.firstName,
         lastName: payload.demographics.lastName,
@@ -146,7 +161,7 @@ export default function ProfilePage() {
     }
 
     void fetchProfile();
-  }, [form, t]);
+  }, [activeProfileId, form, t]);
 
   useEffect(() => {
     if (!toastMessage) {
@@ -158,6 +173,10 @@ export default function ProfilePage() {
   }, [toastMessage]);
 
   async function saveSection(section: EditableSection) {
+    if (isProxyView) {
+      return;
+    }
+
     setErrorMessage(null);
     const fields = SECTION_FIELDS[section];
     const isValid = await form.trigger(fields);
@@ -237,6 +256,11 @@ export default function ProfilePage() {
             {errorMessage}
           </p>
         ) : null}
+        {isProxyView ? (
+          <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+            Viewing family member profile context. Profile editing is disabled.
+          </p>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -261,7 +285,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.contact.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, contact: !prev.contact}))}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, contact: !prev.contact}))} disabled={isProxyView || isLoading}>
               {editingSections.contact ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>
@@ -291,7 +315,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.insurance.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, insurance: !prev.insurance}))}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, insurance: !prev.insurance}))} disabled={isProxyView || isLoading}>
               {editingSections.insurance ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>
@@ -322,7 +346,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.medical.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, medical: !prev.medical}))}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, medical: !prev.medical}))} disabled={isProxyView || isLoading}>
               {editingSections.medical ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>
@@ -350,7 +374,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.communication.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, communication: !prev.communication}))}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, communication: !prev.communication}))} disabled={isProxyView || isLoading}>
               {editingSections.communication ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>

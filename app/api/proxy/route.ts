@@ -71,6 +71,16 @@ export async function POST(request: Request) {
       endsAt: true,
       createdAt: true,
       updatedAt: true,
+      patient: {
+        select: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
     },
   });
 
