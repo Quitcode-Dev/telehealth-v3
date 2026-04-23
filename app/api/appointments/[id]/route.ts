@@ -3,6 +3,7 @@ import {z} from "zod";
 import prisma from "@/src/lib/prisma";
 import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
+import {parseHelsiDateTime} from "@/src/lib/helsi/appointment-utils";
 
 const updateAppointmentSchema = z.object({
   slotId: z.string().trim().min(1).optional(),
@@ -29,6 +30,10 @@ function isHelsiConfigured() {
   return Boolean(process.env.HELSI_API_BASE_URL && process.env.HELSI_API_TOKEN);
 }
 
+/**
+ * Safely parses appointment metadata stored in the notes field.
+ * Returns an empty object when notes are absent or malformed JSON.
+ */
 function parseMeta(notes: string | null): AppointmentMeta {
   if (!notes) {
     return {};
@@ -86,7 +91,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   const meta = parseMeta(appointment.notes);
   const helsiClient = new HelsiApiClient();
   const availabilityService = getHelsiAvailabilityService();
-  const helsiAppointmentId = meta.helsiAppointmentId ?? appointment.id;
+  const helsiAppointmentId = meta.helsiAppointmentId;
+
+  if (!helsiAppointmentId) {
+    return NextResponse.json({error: "Appointment is missing Helsi integration reference"}, {status: 409});
+  }
 
   if (parsed.data.status === "CANCELLED") {
     try {
@@ -134,11 +143,10 @@ export async function PATCH(request: Request, context: RouteContext) {
       availabilityService.releaseSlot(meta.slotId, appointment.patientId);
     }
 
-    if (typeof helsiUpdate.startsAt !== "string" || Number.isNaN(new Date(helsiUpdate.startsAt).getTime())) {
+    const scheduledAt = parseHelsiDateTime(helsiUpdate.startsAt);
+    if (!scheduledAt) {
       throw new Error("Invalid slot time returned from Helsi API");
     }
-
-    const scheduledAt = new Date(helsiUpdate.startsAt);
 
     const updated = await prisma.appointment.update({
       where: {id: appointment.id},

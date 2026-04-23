@@ -3,6 +3,7 @@ import {z} from "zod";
 import prisma from "@/src/lib/prisma";
 import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
+import {parseHelsiDateTime} from "@/src/lib/helsi/appointment-utils";
 
 const createAppointmentSchema = z.object({
   slotId: z.string().trim().min(1),
@@ -78,11 +79,14 @@ export async function POST(request: Request) {
       helsiAppointmentId: helsiBooking.id,
     };
 
-    if (typeof helsiBooking.startsAt !== "string" || Number.isNaN(new Date(helsiBooking.startsAt).getTime())) {
+    const scheduledAt = parseHelsiDateTime(helsiBooking.startsAt);
+    if (!scheduledAt) {
       throw new Error("Invalid slot time returned from Helsi API");
     }
 
-    const scheduledAt = new Date(helsiBooking.startsAt);
+    if (typeof helsiBooking.id !== "string" || helsiBooking.id.length === 0) {
+      throw new Error("Missing appointment ID returned from Helsi API");
+    }
 
     const appointment = await prisma.appointment.create({
       data: {
@@ -90,7 +94,6 @@ export async function POST(request: Request) {
         scheduledAt,
         status: "SCHEDULED",
         reasonForVisit,
-        providerName: helsiBooking.physicianId,
         location: helsiBooking.location,
         notes: JSON.stringify(meta),
       },
@@ -107,7 +110,7 @@ export async function POST(request: Request) {
       patientId: appointment.patientId,
       status: appointment.status,
       scheduledAt: appointment.scheduledAt,
-      confirmationReference: helsiBooking.id ?? appointment.id,
+      confirmationReference: helsiBooking.id,
     }, {status: 201});
   } catch {
     availabilityService.releaseSlot(slotId, patientId);
