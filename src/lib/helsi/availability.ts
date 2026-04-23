@@ -108,6 +108,8 @@ export class HelsiAvailabilityService {
     }
   }
 
+  async getAvailableSlots(specialtyId: string, dateRange: DateRange): Promise<HelsiAvailableSlot[]>;
+  async getAvailableSlots(specialtyId: string, physicianId: string, dateRange: DateRange): Promise<HelsiAvailableSlot[]>;
   async getAvailableSlots(
     specialtyId: string,
     physicianIdOrDateRange: string | DateRange,

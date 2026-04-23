@@ -110,7 +110,7 @@ export class HelsiApiClient {
       }
 
       if (error instanceof Error && error.name === "AbortError") {
-        throw new Error(`Helsi API request to ${path} timed out after ${this.timeoutMs}ms`);
+        throw new Error(`Helsi API request to ${url.toString()} timed out after ${this.timeoutMs}ms`);
       }
 
       throw new Error(
