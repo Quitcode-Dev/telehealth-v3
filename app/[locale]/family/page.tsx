@@ -31,6 +31,15 @@ function statusBadgeClass(status: "PENDING" | "APPROVED" | "REJECTED") {
   return "border-amber-300 bg-amber-50 text-amber-700";
 }
 
+function getApiErrorMessage(payload: unknown) {
+  if (payload && typeof payload === "object" && "error" in payload) {
+    const message = (payload as {error?: unknown}).error;
+    return typeof message === "string" ? message : null;
+  }
+
+  return null;
+}
+
 export default function FamilyDashboard() {
   const {relationships, refreshRelationships, isLoading} = useActiveProfile();
   const [patientId, setPatientId] = useState("");
@@ -71,9 +80,9 @@ export default function FamilyDashboard() {
     });
 
     if (!uploadResponse.ok) {
-      const uploadError = await uploadResponse.json().catch(() => null) as {error?: string} | null;
+      const uploadError = await uploadResponse.json().catch(() => null);
       setIsSubmitting(false);
-      setErrorMessage(uploadError?.error ?? "Failed to upload consent document.");
+      setErrorMessage(getApiErrorMessage(uploadError) ?? "Failed to upload consent document.");
       return;
     }
 
@@ -92,8 +101,8 @@ export default function FamilyDashboard() {
     setIsSubmitting(false);
 
     if (!createResponse.ok) {
-      const createPayload = await createResponse.json().catch(() => null) as {error?: string} | null;
-      setErrorMessage(createPayload?.error ?? "Failed to create proxy request.");
+      const createPayload = await createResponse.json().catch(() => null);
+      setErrorMessage(getApiErrorMessage(createPayload) ?? "Failed to create proxy request.");
       return;
     }
 

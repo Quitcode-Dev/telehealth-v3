@@ -34,6 +34,28 @@ function normalizeStorageBaseUrl(baseUrl: string) {
   return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 }
 
+function isPrivateOrLocalHost(hostname: string) {
+  if (hostname === "localhost" || hostname === "::1" || hostname.endsWith(".local")) {
+    return true;
+  }
+
+  if (/^127\./.test(hostname) || /^10\./.test(hostname) || /^192\.168\./.test(hostname)) {
+    return true;
+  }
+
+  return /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
+}
+
+function getValidatedStorageBaseUrl(rawBaseUrl: string) {
+  const parsed = new URL(normalizeStorageBaseUrl(rawBaseUrl));
+
+  if (parsed.protocol !== "https:" || isPrivateOrLocalHost(parsed.hostname)) {
+    throw new Error("Invalid S3-compatible storage URL");
+  }
+
+  return parsed.toString();
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -61,14 +83,28 @@ export async function POST(request: Request) {
   const objectKey = buildObjectKey(userId, file.type);
 
   if (storageBaseUrl) {
-    const uploadUrl = new URL(objectKey, normalizeStorageBaseUrl(storageBaseUrl));
-    const uploadResponse = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type || "application/octet-stream",
-      },
-      body: Buffer.from(await file.arrayBuffer()),
-    });
+    let validatedBaseUrl: string;
+
+    try {
+      validatedBaseUrl = getValidatedStorageBaseUrl(storageBaseUrl);
+    } catch {
+      return NextResponse.json({error: "S3-compatible storage is misconfigured"}, {status: 500});
+    }
+
+    const uploadUrl = new URL(objectKey, validatedBaseUrl);
+    let uploadResponse: Response;
+
+    try {
+      uploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+        },
+        body: Buffer.from(await file.arrayBuffer()),
+      });
+    } catch {
+      return NextResponse.json({error: "Failed to reach document storage service"}, {status: 502});
+    }
 
     if (!uploadResponse.ok) {
       return NextResponse.json({error: "Failed to upload document"}, {status: 502});
