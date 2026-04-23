@@ -47,15 +47,30 @@ export type HelsiAvailabilityServiceOptions = {
   lockTtlMs?: number;
 };
 
+function isAvailableSlot(slot: unknown): slot is HelsiAvailableSlot {
+  if (!slot || typeof slot !== "object") {
+    return false;
+  }
+
+  const candidate = slot as Partial<HelsiAvailableSlot>;
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.physicianId === "string" &&
+    typeof candidate.specialtyId === "string" &&
+    typeof candidate.startsAt === "string" &&
+    typeof candidate.endsAt === "string"
+  );
+}
+
 function normalizeSlots(payload: unknown): HelsiAvailableSlot[] {
   if (Array.isArray(payload)) {
-    return payload as HelsiAvailableSlot[];
+    return payload.filter(isAvailableSlot);
   }
 
   if (payload && typeof payload === "object" && "slots" in payload) {
     const slots = (payload as { slots?: unknown }).slots;
     if (Array.isArray(slots)) {
-      return slots as HelsiAvailableSlot[];
+      return slots.filter(isAvailableSlot);
     }
   }
 
@@ -156,5 +171,3 @@ export class HelsiAvailabilityService {
     };
   }
 }
-
-export const helsiAvailabilityService = new HelsiAvailabilityService();
