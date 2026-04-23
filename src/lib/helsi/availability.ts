@@ -26,6 +26,9 @@ type SlotLock = {
   expiresAt: number;
 };
 
+const sharedAvailabilityCache = new Map<string, AvailabilityCacheEntry>();
+const sharedSlotLocks = new Map<string, SlotLock>();
+
 export type SlotLockResult =
   | {
       locked: true;
@@ -85,8 +88,8 @@ export class HelsiAvailabilityService {
   private readonly client: HelsiApiClient;
   private readonly cacheTtlMs: number;
   private readonly lockTtlMs: number;
-  private readonly availabilityCache = new Map<string, AvailabilityCacheEntry>();
-  private readonly slotLocks = new Map<string, SlotLock>();
+  private readonly availabilityCache = sharedAvailabilityCache;
+  private readonly slotLocks = sharedSlotLocks;
 
   constructor(options?: HelsiAvailabilityServiceOptions) {
     this.client = options?.client ?? new HelsiApiClient(options?.clientOptions);
@@ -171,5 +174,22 @@ export class HelsiAvailabilityService {
       patientId,
       expiresAt: new Date(expiresAt),
     };
+  }
+
+  releaseSlot(slotId: string, patientId?: string) {
+    const now = Date.now();
+    this.cleanupExpiredState(now);
+
+    const existingLock = this.slotLocks.get(slotId);
+    if (!existingLock) {
+      return false;
+    }
+
+    if (patientId && existingLock.patientId !== patientId) {
+      return false;
+    }
+
+    this.slotLocks.delete(slotId);
+    return true;
   }
 }
