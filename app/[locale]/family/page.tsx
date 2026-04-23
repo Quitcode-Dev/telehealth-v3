@@ -86,7 +86,20 @@ export default function FamilyDashboard() {
       return;
     }
 
-    const uploadResult = await uploadResponse.json() as {consentDocumentUrl: string};
+    const uploadResult = await uploadResponse.json().catch(() => null);
+    const consentDocumentUrl =
+      uploadResult &&
+      typeof uploadResult === "object" &&
+      "consentDocumentUrl" in uploadResult &&
+      typeof uploadResult.consentDocumentUrl === "string"
+        ? uploadResult.consentDocumentUrl
+        : null;
+
+    if (!consentDocumentUrl) {
+      setIsSubmitting(false);
+      setErrorMessage("Upload response did not include a document URL.");
+      return;
+    }
 
     const createResponse = await fetch("/api/proxy", {
       method: "POST",
@@ -94,7 +107,7 @@ export default function FamilyDashboard() {
       body: JSON.stringify({
         patientId: patientId.trim(),
         relationshipType,
-        consentDocumentUrl: uploadResult.consentDocumentUrl,
+        consentDocumentUrl,
       }),
     });
 

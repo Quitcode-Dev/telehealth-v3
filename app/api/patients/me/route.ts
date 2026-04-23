@@ -142,9 +142,9 @@ function mapProfile(profile: NonNullable<Awaited<ReturnType<typeof getProfile>>>
       currentMedications: profile.currentMedications ?? "",
     },
     communicationPreferences: {
-      push: profile.prefersPushNotifications,
-      sms: profile.prefersSmsNotifications,
-      viber: profile.prefersViberNotifications,
+      push: profile.prefersPushNotifications ?? true,
+      sms: profile.prefersSmsNotifications ?? false,
+      viber: profile.prefersViberNotifications ?? false,
     },
   };
 }
