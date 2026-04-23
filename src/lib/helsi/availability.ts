@@ -178,7 +178,7 @@ export class HelsiAvailabilityService {
    * Releases a slot lock.
    * Returns false when no lock exists or when patientId does not match the existing lock owner.
    */
-  releaseSlot(slotId: string, patientId?: string) {
+  releaseSlot(slotId: string, patientId?: string): boolean {
     const now = Date.now();
     this.cleanupExpiredState(now);
 

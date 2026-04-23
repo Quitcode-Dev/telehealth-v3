@@ -40,12 +40,17 @@ function parseMeta(notes: string | null): AppointmentMeta {
   }
 
   try {
-    const parsed = JSON.parse(notes) as AppointmentMeta;
+    const parsed = JSON.parse(notes) as unknown;
     if (!parsed || typeof parsed !== "object") {
       return {};
     }
 
-    return parsed;
+    const candidate = parsed as Record<string, unknown>;
+    return {
+      slotId: typeof candidate.slotId === "string" ? candidate.slotId : undefined,
+      paymentId: typeof candidate.paymentId === "string" ? candidate.paymentId : undefined,
+      helsiAppointmentId: typeof candidate.helsiAppointmentId === "string" ? candidate.helsiAppointmentId : undefined,
+    };
   } catch {
     return {};
   }
@@ -68,10 +73,6 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const {id} = await context.params;
-
-  if (!id) {
-    return NextResponse.json({error: "Appointment ID is required"}, {status: 400});
-  }
 
   const appointment = await prisma.appointment.findUnique({
     where: {id},
