@@ -22,7 +22,7 @@ type HelsiBookingResponse = {
 type AppointmentMeta = {
   slotId: string;
   paymentId: string;
-  helsiAppointmentId?: string;
+  helsiAppointmentId: string;
 };
 
 function isHelsiConfigured() {
