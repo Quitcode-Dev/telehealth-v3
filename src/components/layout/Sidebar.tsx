@@ -6,6 +6,7 @@ const navItems = [
   {label: "Results", href: "/results"},
   {label: "Messages", href: "/messages"},
   {label: "Profile", href: "/profile"},
+  {label: "Family", href: "/family"},
 ];
 
 type SidebarProps = {

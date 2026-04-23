@@ -1,6 +1,7 @@
 import {Footer} from "./Footer";
 import {Header} from "./Header";
 import {Sidebar} from "./Sidebar";
+import {ActiveProfileProvider} from "@/src/components/family/ActiveProfileContext";
 import {
   Sheet,
   SheetClose,
@@ -17,44 +18,46 @@ type AppShellProps = {
 
 export function AppShell({children}: AppShellProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <Sheet>
-        <Header
-          mobileMenuTrigger={
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                className="rounded-md border border-border px-2 py-1 text-sm lg:hidden"
-                aria-label="Open navigation menu"
-              >
-                Menu
-              </button>
-            </SheetTrigger>
-          }
-        />
+    <ActiveProfileProvider>
+      <div className="flex min-h-screen flex-col bg-background text-foreground">
+        <Sheet>
+          <Header
+            mobileMenuTrigger={
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  className="rounded-md border border-border px-2 py-1 text-sm lg:hidden"
+                  aria-label="Open navigation menu"
+                >
+                  Menu
+                </button>
+              </SheetTrigger>
+            }
+          />
 
-        <div className="flex flex-1">
-          <Sidebar className="hidden w-64 border-r border-border lg:block" />
+          <div className="flex flex-1">
+            <Sidebar className="hidden w-64 border-r border-border lg:block" />
 
-          <SheetContent side="left" className="p-0 lg:hidden">
-            <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <SheetDescription className="sr-only">Select a destination from the main menu.</SheetDescription>
-            <div className="flex justify-end p-2">
-              <SheetClose
-                type="button"
-                className="rounded-md border border-border px-2 py-1 text-sm"
-                aria-label="Close navigation menu"
-              >
-                Close
-              </SheetClose>
-            </div>
-            <Sidebar className="h-full" />
-          </SheetContent>
-          <main className="flex-1 p-6">{children}</main>
-        </div>
-      </Sheet>
+            <SheetContent side="left" className="p-0 lg:hidden">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetDescription className="sr-only">Select a destination from the main menu.</SheetDescription>
+              <div className="flex justify-end p-2">
+                <SheetClose
+                  type="button"
+                  className="rounded-md border border-border px-2 py-1 text-sm"
+                  aria-label="Close navigation menu"
+                >
+                  Close
+                </SheetClose>
+              </div>
+              <Sidebar className="h-full" />
+            </SheetContent>
+            <main className="flex-1 p-6">{children}</main>
+          </div>
+        </Sheet>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </ActiveProfileProvider>
   );
 }
