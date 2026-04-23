@@ -5,7 +5,7 @@ import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 
 const createProxySchema = z.object({
-  relationshipType: z.enum(["parent", "guardian", "caregiver"]),
+  relationshipType: z.string().trim().toUpperCase().pipe(z.enum(["PARENT", "GUARDIAN", "CAREGIVER", "LEGAL_REPRESENTATIVE"])),
   patientId: z.string().uuid(),
   consentDocumentUrl: z.url(),
 }).strict();
@@ -18,18 +18,6 @@ async function getUserId() {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   return typeof userId === "string" ? userId : null;
-}
-
-function mapRelationshipType(relationshipType: "parent" | "guardian" | "caregiver") {
-  if (relationshipType === "parent") {
-    return "PARENT" as const;
-  }
-
-  if (relationshipType === "guardian") {
-    return "GUARDIAN" as const;
-  }
-
-  return "CAREGIVER" as const;
 }
 
 export async function POST(request: Request) {
@@ -65,7 +53,7 @@ export async function POST(request: Request) {
     data: {
       proxyUserId: userId,
       patientId: data.patientId,
-      relationshipType: mapRelationshipType(data.relationshipType),
+      relationshipType: data.relationshipType,
       consentDocumentUrl: data.consentDocumentUrl,
       status: "PENDING",
       isActive: false,

@@ -1,11 +1,12 @@
 import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
+import {Prisma} from "@prisma/client";
 import {z} from "zod";
 import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 
 const updateProxyStatusSchema = z.object({
-  status: z.enum(["approved", "rejected"]),
+  status: z.string().trim().toUpperCase().pipe(z.enum(["PENDING", "APPROVED", "REJECTED"])),
 }).strict();
 
 type RouteContext = {
@@ -41,33 +42,41 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({error: "Proxy relationship ID is required"}, {status: 400});
   }
 
-  const nextStatus = parsed.data.status === "approved" ? "APPROVED" : "REJECTED";
-  const updatedRelationship = await prisma.proxyRelationship.update({
-    where: {id},
-    data: {
-      status: nextStatus,
-      reviewedAt: new Date(),
-      isActive: nextStatus === "APPROVED",
-    },
-    select: {
-      id: true,
-      proxyUserId: true,
-      patientId: true,
-      relationshipType: true,
-      consentDocumentUrl: true,
-      status: true,
-      reviewedAt: true,
-      isActive: true,
-      startsAt: true,
-      endsAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  }).catch(() => null);
+  const nextStatus = parsed.data.status;
 
-  if (!updatedRelationship) {
-    return NextResponse.json({error: "Proxy relationship not found"}, {status: 404});
+  if (nextStatus === "PENDING") {
+    return NextResponse.json({error: "Pending status is only allowed during request creation"}, {status: 400});
   }
+  try {
+    const updatedRelationship = await prisma.proxyRelationship.update({
+      where: {id},
+      data: {
+        status: nextStatus,
+        reviewedAt: new Date(),
+        isActive: nextStatus === "APPROVED",
+      },
+      select: {
+        id: true,
+        proxyUserId: true,
+        patientId: true,
+        relationshipType: true,
+        consentDocumentUrl: true,
+        status: true,
+        reviewedAt: true,
+        isActive: true,
+        startsAt: true,
+        endsAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-  return NextResponse.json(updatedRelationship);
+    return NextResponse.json(updatedRelationship);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return NextResponse.json({error: "Proxy relationship not found"}, {status: 404});
+    }
+
+    return NextResponse.json({error: "Failed to update proxy relationship"}, {status: 500});
+  }
 }
