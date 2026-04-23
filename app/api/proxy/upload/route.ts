@@ -30,6 +30,10 @@ function buildObjectKey(userId: string, contentType: string) {
   return `${userId}/${crypto.randomUUID()}.${fileExtension}`;
 }
 
+function normalizeStorageBaseUrl(baseUrl: string) {
+  return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
   const objectKey = buildObjectKey(userId, file.type);
 
   if (storageBaseUrl) {
-    const uploadUrl = new URL(objectKey, storageBaseUrl.endsWith("/") ? storageBaseUrl : `${storageBaseUrl}/`);
+    const uploadUrl = new URL(objectKey, normalizeStorageBaseUrl(storageBaseUrl));
     const uploadResponse = await fetch(uploadUrl, {
       method: "PUT",
       headers: {

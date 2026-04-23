@@ -285,7 +285,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.contact.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, contact: !prev.contact}))} disabled={isProxyView}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, contact: !prev.contact}))} disabled={isProxyView || isLoading}>
               {editingSections.contact ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>
@@ -315,7 +315,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.insurance.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, insurance: !prev.insurance}))} disabled={isProxyView}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, insurance: !prev.insurance}))} disabled={isProxyView || isLoading}>
               {editingSections.insurance ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>
@@ -346,7 +346,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.medical.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, medical: !prev.medical}))} disabled={isProxyView}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, medical: !prev.medical}))} disabled={isProxyView || isLoading}>
               {editingSections.medical ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>
@@ -374,7 +374,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t("sections.communication.title")}</CardTitle>
-            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, communication: !prev.communication}))} disabled={isProxyView}>
+            <Button type="button" className="border border-border bg-transparent text-foreground" onClick={() => setEditingSections((prev) => ({...prev, communication: !prev.communication}))} disabled={isProxyView || isLoading}>
               {editingSections.communication ? t("actions.cancel") : t("actions.edit")}
             </Button>
           </CardHeader>

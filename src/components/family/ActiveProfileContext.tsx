@@ -61,13 +61,7 @@ function buildProfileOptions(relationships: ProxyRelationship[]) {
 }
 
 export function ActiveProfileProvider({children}: {children: React.ReactNode}) {
-  const [activeProfileId, setActiveProfileId] = useState<string | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    return window.localStorage.getItem(ACTIVE_PROFILE_STORAGE_KEY);
-  });
+  const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<ProfileOption[]>([]);
   const [relationships, setRelationships] = useState<ProxyRelationship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,18 +73,20 @@ export function ActiveProfileProvider({children}: {children: React.ReactNode}) {
     setIsLoading(false);
 
     setActiveProfileId((previous) => {
-      if (!previous) {
+      const candidate = previous ?? window.localStorage.getItem(ACTIVE_PROFILE_STORAGE_KEY);
+
+      if (!candidate) {
         return null;
       }
 
-      const stillAvailable = nextProfiles.some((profile) => profile.patientId === previous);
+      const stillAvailable = nextProfiles.some((profile) => profile.patientId === candidate);
 
       if (!stillAvailable) {
         window.localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
         return null;
       }
 
-      return previous;
+      return candidate;
     });
   }, []);
 
