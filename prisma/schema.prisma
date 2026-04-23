@@ -93,6 +93,9 @@ model ProxyRelationship {
   proxyUserId      String    @db.Uuid
   patientId        String    @db.Uuid
   relationshipType ProxyRelationshipType
+  consentDocumentUrl String
+  status           ProxyRelationshipStatus @default(PENDING)
+  reviewedAt       DateTime?
   isActive         Boolean   @default(true)
   startsAt         DateTime  @default(now())
   endsAt           DateTime?
@@ -166,6 +169,12 @@ enum ProxyRelationshipType {
   GUARDIAN
   CAREGIVER
   LEGAL_REPRESENTATIVE
+}
+
+enum ProxyRelationshipStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum NotificationType {
