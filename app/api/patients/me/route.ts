@@ -20,7 +20,7 @@ const updateProfileSchema = z.object({
   prefersPushNotifications: z.boolean().optional(),
   prefersSmsNotifications: z.boolean().optional(),
   prefersViberNotifications: z.boolean().optional(),
-});
+}).strict();
 
 function unauthorized() {
   return NextResponse.json({error: "Unauthorized"}, {status: 401});
