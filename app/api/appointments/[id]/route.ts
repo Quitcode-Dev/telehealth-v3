@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import prisma from "@/src/lib/prisma";
-import {HelsiAvailabilityService} from "@/src/lib/helsi/availability";
+import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
 
 const updateAppointmentSchema = z.object({
@@ -85,7 +85,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   const meta = parseMeta(appointment.notes);
   const helsiClient = new HelsiApiClient();
-  const availabilityService = new HelsiAvailabilityService();
+  const availabilityService = getHelsiAvailabilityService();
   const helsiAppointmentId = meta.helsiAppointmentId ?? appointment.id;
 
   if (parsed.data.status === "CANCELLED") {
@@ -134,10 +134,11 @@ export async function PATCH(request: Request, context: RouteContext) {
       availabilityService.releaseSlot(meta.slotId, appointment.patientId);
     }
 
-    const scheduledAt =
-      typeof helsiUpdate.startsAt === "string" && !Number.isNaN(new Date(helsiUpdate.startsAt).getTime())
-        ? new Date(helsiUpdate.startsAt)
-        : appointment.scheduledAt;
+    if (typeof helsiUpdate.startsAt !== "string" || Number.isNaN(new Date(helsiUpdate.startsAt).getTime())) {
+      throw new Error("Invalid slot time returned from Helsi API");
+    }
+
+    const scheduledAt = new Date(helsiUpdate.startsAt);
 
     const updated = await prisma.appointment.update({
       where: {id: appointment.id},

@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
-import {HelsiAvailabilityService} from "@/src/lib/helsi/availability";
+import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 
 const slotsQuerySchema = z.object({
   specialty: z.string().trim().min(1),
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   }
 
   const {specialty, date, physicianId} = parsed.data;
-  const availabilityService = new HelsiAvailabilityService();
+  const availabilityService = getHelsiAvailabilityService();
 
   try {
     const slots = physicianId

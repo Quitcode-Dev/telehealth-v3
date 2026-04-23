@@ -26,8 +26,6 @@ type SlotLock = {
   expiresAt: number;
 };
 
-const sharedAvailabilityCache = new Map<string, AvailabilityCacheEntry>();
-const sharedSlotLocks = new Map<string, SlotLock>();
 
 export type SlotLockResult =
   | {
@@ -88,8 +86,8 @@ export class HelsiAvailabilityService {
   private readonly client: HelsiApiClient;
   private readonly cacheTtlMs: number;
   private readonly lockTtlMs: number;
-  private readonly availabilityCache = sharedAvailabilityCache;
-  private readonly slotLocks = sharedSlotLocks;
+  private readonly availabilityCache = new Map<string, AvailabilityCacheEntry>();
+  private readonly slotLocks = new Map<string, SlotLock>();
 
   constructor(options?: HelsiAvailabilityServiceOptions) {
     this.client = options?.client ?? new HelsiApiClient(options?.clientOptions);

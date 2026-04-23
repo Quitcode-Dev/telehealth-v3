@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
 import prisma from "@/src/lib/prisma";
-import {HelsiAvailabilityService} from "@/src/lib/helsi/availability";
+import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
 
 const createAppointmentSchema = z.object({
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     return NextResponse.json({error: "Patient not found"}, {status: 404});
   }
 
-  const availabilityService = new HelsiAvailabilityService();
+  const availabilityService = getHelsiAvailabilityService();
   const lockResult = availabilityService.lockSlot(slotId, patientId);
 
   if (!lockResult.locked) {
@@ -78,10 +78,11 @@ export async function POST(request: Request) {
       helsiAppointmentId: helsiBooking.id,
     };
 
-    const scheduledAt =
-      typeof helsiBooking.startsAt === "string" && !Number.isNaN(new Date(helsiBooking.startsAt).getTime())
-        ? new Date(helsiBooking.startsAt)
-        : new Date();
+    if (typeof helsiBooking.startsAt !== "string" || Number.isNaN(new Date(helsiBooking.startsAt).getTime())) {
+      throw new Error("Invalid slot time returned from Helsi API");
+    }
+
+    const scheduledAt = new Date(helsiBooking.startsAt);
 
     const appointment = await prisma.appointment.create({
       data: {
