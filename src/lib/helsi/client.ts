@@ -26,11 +26,21 @@ export class HelsiApiError extends Error {
 }
 
 function getDefaultBaseUrl() {
-  return process.env.HELSI_API_BASE_URL ?? "";
+  const baseUrl = process.env.HELSI_API_BASE_URL;
+  if (!baseUrl) {
+    throw new Error("HELSI_API_BASE_URL is not configured");
+  }
+
+  return baseUrl;
 }
 
 function getDefaultApiToken() {
-  return process.env.HELSI_API_TOKEN ?? "";
+  const apiToken = process.env.HELSI_API_TOKEN;
+  if (!apiToken) {
+    throw new Error("HELSI_API_TOKEN is not configured");
+  }
+
+  return apiToken;
 }
 
 export class HelsiApiClient {
@@ -61,14 +71,6 @@ export class HelsiApiClient {
   }
 
   async request<T>(path: string, options?: RequestOptions): Promise<T> {
-    if (!this.baseUrl) {
-      throw new Error("Helsi API base URL is not configured");
-    }
-
-    if (!this.apiToken) {
-      throw new Error("Helsi API token is not configured");
-    }
-
     const url = new URL(path, this.baseUrl);
     if (options?.query) {
       for (const [key, value] of Object.entries(options.query)) {
@@ -119,4 +121,3 @@ export class HelsiApiClient {
     }
   }
 }
-

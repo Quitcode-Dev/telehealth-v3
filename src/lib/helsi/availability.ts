@@ -79,11 +79,28 @@ export class HelsiAvailabilityService {
     this.lockTtlMs = options?.lockTtlMs ?? SLOT_LOCK_TTL_MS;
   }
 
+  private cleanupExpiredState(now: number) {
+    for (const [cacheKey, cacheEntry] of this.availabilityCache.entries()) {
+      if (cacheEntry.expiresAt <= now) {
+        this.availabilityCache.delete(cacheKey);
+      }
+    }
+
+    for (const [slotId, lock] of this.slotLocks.entries()) {
+      if (lock.expiresAt <= now) {
+        this.slotLocks.delete(slotId);
+      }
+    }
+  }
+
   async getAvailableSlots(
     specialtyId: string,
     physicianIdOrDateRange: string | DateRange,
     maybeDateRange?: DateRange,
   ): Promise<HelsiAvailableSlot[]> {
+    const now = Date.now();
+    this.cleanupExpiredState(now);
+
     const physicianId = typeof physicianIdOrDateRange === "string" ? physicianIdOrDateRange : undefined;
     const dateRange = typeof physicianIdOrDateRange === "string" ? maybeDateRange : physicianIdOrDateRange;
     if (!dateRange) {
@@ -91,7 +108,6 @@ export class HelsiAvailabilityService {
     }
 
     const cacheKey = createCacheKey(specialtyId, physicianId, dateRange);
-    const now = Date.now();
     const cachedEntry = this.availabilityCache.get(cacheKey);
     if (cachedEntry && cachedEntry.expiresAt > now) {
       return cachedEntry.slots;
@@ -114,6 +130,8 @@ export class HelsiAvailabilityService {
 
   lockSlot(slotId: string, patientId: string): SlotLockResult {
     const now = Date.now();
+    this.cleanupExpiredState(now);
+
     const existingLock = this.slotLocks.get(slotId);
     if (existingLock && existingLock.expiresAt > now && existingLock.patientId !== patientId) {
       return {
