@@ -113,6 +113,5 @@ export async function POST(request: Request) {
     return NextResponse.json({consentDocumentUrl: uploadUrl.toString()});
   }
 
-  const fallbackUrl = `https://s3.local/proxy-documents/${objectKey}`;
-  return NextResponse.json({consentDocumentUrl: fallbackUrl, mocked: true});
+  return NextResponse.json({error: "S3-compatible storage is not configured"}, {status: 503});
 }
