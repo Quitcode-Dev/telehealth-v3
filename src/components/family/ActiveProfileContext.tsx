@@ -72,17 +72,7 @@ export function ActiveProfileProvider({children}: {children: React.ReactNode}) {
   const [relationships, setRelationships] = useState<ProxyRelationship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshRelationships = useCallback(async () => {
-    const response = await fetch("/api/proxy");
-
-    if (!response.ok) {
-      setRelationships([]);
-      setProfiles([]);
-      setIsLoading(false);
-      return;
-    }
-
-    const payload = (await response.json()) as ProxyRelationship[];
+  const applyRelationships = useCallback((payload: ProxyRelationship[]) => {
     setRelationships(payload);
     const nextProfiles = buildProfileOptions(payload);
     setProfiles(nextProfiles);
@@ -103,6 +93,20 @@ export function ActiveProfileProvider({children}: {children: React.ReactNode}) {
       return previous;
     });
   }, []);
+
+  const refreshRelationships = useCallback(async () => {
+    const response = await fetch("/api/proxy");
+
+    if (!response.ok) {
+      setRelationships([]);
+      setProfiles([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const payload = (await response.json()) as ProxyRelationship[];
+    applyRelationships(payload);
+  }, [applyRelationships]);
 
   useEffect(() => {
     let isMounted = true;
@@ -127,25 +131,7 @@ export function ActiveProfileProvider({children}: {children: React.ReactNode}) {
         return;
       }
 
-      setRelationships(payload);
-      const nextProfiles = buildProfileOptions(payload);
-      setProfiles(nextProfiles);
-      setIsLoading(false);
-
-      setActiveProfileId((previous) => {
-        if (!previous) {
-          return null;
-        }
-
-        const stillAvailable = nextProfiles.some((profile) => profile.patientId === previous);
-
-        if (!stillAvailable) {
-          window.localStorage.removeItem(ACTIVE_PROFILE_STORAGE_KEY);
-          return null;
-        }
-
-        return previous;
-      });
+      applyRelationships(payload);
     }
 
     void loadRelationships();
@@ -153,7 +139,7 @@ export function ActiveProfileProvider({children}: {children: React.ReactNode}) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [applyRelationships]);
 
   const updateActiveProfileId = useCallback((value: string | null) => {
     setActiveProfileId(value);

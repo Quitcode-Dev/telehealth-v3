@@ -71,13 +71,13 @@ export default function FamilyDashboard() {
     });
 
     if (!uploadResponse.ok) {
-      const uploadPayload = await uploadResponse.json().catch(() => null) as {error?: string} | null;
+      const uploadError = await uploadResponse.json().catch(() => null) as {error?: string} | null;
       setIsSubmitting(false);
-      setErrorMessage(uploadPayload?.error ?? "Failed to upload consent document.");
+      setErrorMessage(uploadError?.error ?? "Failed to upload consent document.");
       return;
     }
 
-    const uploadPayload = await uploadResponse.json() as {consentDocumentUrl: string};
+    const uploadResult = await uploadResponse.json() as {consentDocumentUrl: string};
 
     const createResponse = await fetch("/api/proxy", {
       method: "POST",
@@ -85,7 +85,7 @@ export default function FamilyDashboard() {
       body: JSON.stringify({
         patientId: patientId.trim(),
         relationshipType,
-        consentDocumentUrl: uploadPayload.consentDocumentUrl,
+        consentDocumentUrl: uploadResult.consentDocumentUrl,
       }),
     });
 

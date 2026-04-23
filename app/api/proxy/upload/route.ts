@@ -13,9 +13,21 @@ function unauthorized() {
   return NextResponse.json({error: "Unauthorized"}, {status: 401});
 }
 
-function buildObjectKey(userId: string, fileName: string) {
-  const sanitizedName = fileName.toLowerCase().replace(/[^a-z0-9.\-_]+/g, "-");
-  return `${userId}/${Date.now()}-${sanitizedName || "proxy-consent-document"}`;
+function extensionForContentType(contentType: string) {
+  if (contentType === "application/pdf") {
+    return "pdf";
+  }
+
+  if (contentType === "image/jpeg") {
+    return "jpg";
+  }
+
+  return "png";
+}
+
+function buildObjectKey(userId: string, contentType: string) {
+  const fileExtension = extensionForContentType(contentType);
+  return `${userId}/${crypto.randomUUID()}.${fileExtension}`;
 }
 
 export async function POST(request: Request) {
@@ -42,7 +54,7 @@ export async function POST(request: Request) {
   }
 
   const storageBaseUrl = process.env.S3_COMPAT_BASE_URL?.trim();
-  const objectKey = buildObjectKey(userId, file.name);
+  const objectKey = buildObjectKey(userId, file.type);
 
   if (storageBaseUrl) {
     const uploadUrl = new URL(objectKey, storageBaseUrl.endsWith("/") ? storageBaseUrl : `${storageBaseUrl}/`);
