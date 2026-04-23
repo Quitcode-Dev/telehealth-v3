@@ -128,7 +128,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
   }
 
-  const newSlotId = parsed.data.slotId as string;
+  const newSlotId = parsed.data.slotId;
+  if (!newSlotId) {
+    return NextResponse.json({error: "slotId is required for rescheduling"}, {status: 400});
+  }
   const lockResult = availabilityService.lockSlot(newSlotId, appointment.patientId);
 
   if (!lockResult.locked) {

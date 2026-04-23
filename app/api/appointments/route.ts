@@ -73,6 +73,10 @@ export async function POST(request: Request) {
       paymentId,
     });
 
+    if (typeof helsiBooking.id !== "string" || helsiBooking.id.length === 0) {
+      throw new Error("Missing appointment ID returned from Helsi API");
+    }
+
     const meta: AppointmentMeta = {
       slotId,
       paymentId,
@@ -82,10 +86,6 @@ export async function POST(request: Request) {
     const scheduledAt = parseHelsiDateTime(helsiBooking.startsAt);
     if (!scheduledAt) {
       throw new Error("Invalid slot time returned from Helsi API");
-    }
-
-    if (typeof helsiBooking.id !== "string" || helsiBooking.id.length === 0) {
-      throw new Error("Missing appointment ID returned from Helsi API");
     }
 
     const appointment = await prisma.appointment.create({
