@@ -1,7 +1,7 @@
 "use client";
 
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {useTranslations} from "next-intl";
+import {useTranslations, useLocale} from "next-intl";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 
@@ -69,6 +69,9 @@ export function PaymentForm({
   onCancel,
 }: PaymentFormProps) {
   const t = useTranslations("PaymentForm");
+  const locale = useLocale();
+  // LiqPay widget supports "uk" and "en" language codes.
+  const liqpayLanguage = locale === "uk" ? "uk" : "en";
   const [state, setState] = useState<PaymentState>({status: "initializing"});
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const onSuccessRef = useRef(onSuccess);
@@ -140,7 +143,7 @@ export function PaymentForm({
         data,
         signature,
         embedTo: `#${WIDGET_CONTAINER_ID}`,
-        language: "en",
+        language: liqpayLanguage,
         mode: "embed",
       }).on("liqpay.callback", (callbackData) => {
         const successStatuses = ["success", "sandbox"];
@@ -184,9 +187,9 @@ export function PaymentForm({
       }
     };
   // widgetData reference is stable for a given data/signature pair; we also depend on
-  // slotId, patientId, reasonForVisit and t which are stable across retries for the same booking.
+  // slotId, patientId, reasonForVisit, t and liqpayLanguage which are stable across retries.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [widgetData]);
+  }, [widgetData, liqpayLanguage]);
 
   const isLoading = state.status === "initializing" || state.status === "processing";
   const loadingMessage = state.status === "initializing" ? t("initializing") : t("processing");

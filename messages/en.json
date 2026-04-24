@@ -200,7 +200,7 @@
   },
   "PaymentForm": {
     "title": "Secure payment",
-    "initializing": "Initialising payment…",
+    "initializing": "Initializing payment…",
     "processing": "Confirming your booking…",
     "widgetLabel": "LiqPay payment widget",
     "retryPayment": "Retry payment",
