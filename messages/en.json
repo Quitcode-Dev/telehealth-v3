@@ -206,7 +206,7 @@
     "retryPayment": "Retry payment",
     "cancel": "Cancel",
     "errors": {
-      "initFailed": "Failed to initialise payment. Please try again.",
+      "initFailed": "Failed to initialize payment. Please try again.",
       "widgetLoadFailed": "Failed to load the payment widget. Please check your connection and try again.",
       "paymentDeclined": "Your payment was not completed. Please try again.",
       "confirmFailed": "Payment was received but we could not confirm your booking. Please contact support."
