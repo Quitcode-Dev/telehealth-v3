@@ -26,6 +26,7 @@ type SlotLock = {
   expiresAt: number;
 };
 
+
 export type SlotLockResult =
   | {
       locked: true;
@@ -171,5 +172,26 @@ export class HelsiAvailabilityService {
       patientId,
       expiresAt: new Date(expiresAt),
     };
+  }
+
+  /**
+   * Releases a slot lock.
+   * Returns false when no lock exists or when patientId does not match the existing lock owner.
+   */
+  releaseSlot(slotId: string, patientId?: string): boolean {
+    const now = Date.now();
+    this.cleanupExpiredState(now);
+
+    const existingLock = this.slotLocks.get(slotId);
+    if (!existingLock) {
+      return false;
+    }
+
+    if (patientId && existingLock.patientId !== patientId) {
+      return false;
+    }
+
+    this.slotLocks.delete(slotId);
+    return true;
   }
 }
