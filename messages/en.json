@@ -163,7 +163,8 @@
     "errors": {
       "reasonRequired": "Please describe your reason for visiting.",
       "reasonTooLong": "Reason must be {max} characters or fewer.",
-      "confirmFailed": "We couldn't confirm your booking. Please try again."
+      "confirmFailed": "We couldn't confirm your booking. Please try again.",
+      "patientProfileRequired": "Unable to load your patient profile. Please log in and ensure your profile is complete before booking."
     },
     "proceedToPayment": "Proceed to payment",
     "paymentTitle": "Payment"

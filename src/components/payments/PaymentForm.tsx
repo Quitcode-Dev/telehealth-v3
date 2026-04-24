@@ -91,7 +91,8 @@ export function PaymentForm({
       setState({status: "widget_ready", data: json.data, signature: json.signature, orderId});
     } catch (err) {
       const message = err instanceof Error ? err.message : t("errors.initFailed");
-      setState({status: "error", message, retryable: false});
+      // Network issues and transient service errors are retryable.
+      setState({status: "error", message, retryable: true});
     }
   }, [patientId, amount, description, slotId, t]);
 
@@ -99,12 +100,18 @@ export function PaymentForm({
     void initPayment();
   }, [initPayment]);
 
-  // Extract widget initialisation data so the script-loading effect only
-  // re-runs when we actually have new LiqPay credentials to load.
+  // Snapshot the widget credentials into stable variables so the
+  // script-loading effect only re-runs when we have new LiqPay data.
+  const widgetStateData = state.status === "widget_ready" ? state.data : null;
+  const widgetStateSignature = state.status === "widget_ready" ? state.signature : null;
+  const widgetStateOrderId = state.status === "widget_ready" ? state.orderId : null;
+
   const widgetData = useMemo(
-    () => (state.status === "widget_ready" ? {data: state.data, signature: state.signature, orderId: state.orderId} : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.status === "widget_ready" ? state.data : null],
+    () =>
+      widgetStateData && widgetStateSignature && widgetStateOrderId
+        ? {data: widgetStateData, signature: widgetStateSignature, orderId: widgetStateOrderId}
+        : null,
+    [widgetStateData, widgetStateSignature, widgetStateOrderId],
   );
 
   useEffect(() => {

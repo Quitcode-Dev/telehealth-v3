@@ -102,8 +102,15 @@ function AppointmentConfirmContent() {
     };
   }, []);
 
-  function handleConfirm() {
+  function handleProceedToPayment() {
     if (state.phase !== "ready") return;
+
+    if (!state.patientId) {
+      // Patient profile could not be loaded — surface a clear message so the
+      // user knows they need to log in or complete their profile before booking.
+      setState({phase: "error", message: t("errors.patientProfileRequired")});
+      return;
+    }
 
     const trimmed = reasonForVisit.trim();
     if (!trimmed) {
@@ -333,7 +340,7 @@ function AppointmentConfirmContent() {
           </Button>
           <Button
             type="button"
-            onClick={handleConfirm}
+            onClick={handleProceedToPayment}
             disabled={state.phase === "loading"}
           >
             {t("proceedToPayment")}
