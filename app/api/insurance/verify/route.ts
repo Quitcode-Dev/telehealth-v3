@@ -1,7 +1,9 @@
 import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
+import {z} from "zod";
 import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
+import {verifyInsurance} from "@/src/lib/insurance/verification";
 
 export type InsuranceVerificationStatus = "covered" | "not_covered" | "pending";
 
@@ -94,4 +96,35 @@ export async function GET() {
   };
 
   return NextResponse.json(result);
+}
+
+const verifyInsuranceSchema = z.object({
+  patientId: z.string().uuid(),
+  appointmentTypeId: z.string().trim().min(1),
+}).strict();
+
+export async function POST(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({error: "Insurance verification is unavailable"}, {status: 503});
+  }
+
+  const body = await request.json().catch(() => null);
+  const parsed = verifyInsuranceSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json({error: "Invalid request payload"}, {status: 400});
+  }
+
+  const {patientId, appointmentTypeId} = parsed.data;
+
+  try {
+    const result = await verifyInsurance(patientId, appointmentTypeId);
+    return NextResponse.json(result);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Patient not found")) {
+      return NextResponse.json({error: "Patient not found"}, {status: 404});
+    }
+    console.error("Insurance verification failed", error);
+    return NextResponse.json({error: "Insurance verification failed"}, {status: 502});
+  }
 }
