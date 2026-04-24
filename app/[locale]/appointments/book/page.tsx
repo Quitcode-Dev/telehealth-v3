@@ -2,6 +2,7 @@
 
 import {useTranslations} from "next-intl";
 import {useEffect, useMemo, useState} from "react";
+import {useRouter} from "next/navigation";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Input} from "@/src/components/ui/input";
@@ -68,6 +69,7 @@ function formatDate(dateStr: string) {
 
 export default function BookAppointmentPage() {
   const t = useTranslations("BookAppointmentPage");
+  const router = useRouter();
 
   const [step, setStep] = useState<BookingStep>(1);
 
@@ -436,9 +438,15 @@ export default function BookAppointmentPage() {
               <Button
                 type="button"
                 onClick={() => {
-                  // Advance to payment / further booking steps
-                  // For now, this is a placeholder for the next epic step
-                  alert(t("confirmationPlaceholder"));
+                  const params = new URLSearchParams({
+                    slotId: selectedSlot.id,
+                    physicianId: selectedPhysicianId !== "any" ? selectedPhysicianId : "",
+                    physicianName: selectedPhysician?.name ?? "",
+                    specialty: selectedSpecialty.label,
+                    startsAt: selectedSlot.startsAt,
+                    endsAt: selectedSlot.endsAt,
+                  });
+                  router.push(`/appointments/book/confirm?${params.toString()}`);
                 }}
               >
                 {t("confirmBooking")}

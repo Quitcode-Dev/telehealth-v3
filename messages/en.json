@@ -110,6 +110,52 @@
       "saveFailed": "Unable to save profile changes."
     }
   },
+  "AppointmentConfirmPage": {
+    "title": "Confirm appointment",
+    "description": "Review your appointment details, check insurance coverage, and confirm your booking.",
+    "summaryTitle": "Appointment summary",
+    "costTitle": "Cost estimate",
+    "reasonTitle": "Reason for visit",
+    "reasonLabel": "Describe your reason for visiting (required)",
+    "reasonPlaceholder": "E.g. routine check-up, follow-up for ongoing treatment…",
+    "verifyingInsurance": "Verifying insurance coverage…",
+    "back": "Back",
+    "confirmBooking": "Confirm booking",
+    "confirming": "Confirming…",
+    "fields": {
+      "specialty": "Specialty",
+      "physician": "Physician",
+      "anyAvailable": "Any available",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "insuranceStatus": "Insurance",
+      "insuredWith": "Insured with"
+    },
+    "insuranceStatus": {
+      "covered": "Covered",
+      "notCovered": "Not covered",
+      "pending": "Verification pending",
+      "notCoveredNote": "No insurance policy found. Please contact the clinic to add your insurance details.",
+      "pendingNote": "Insurance verification pending. Final amount will be confirmed at check-in."
+    },
+    "cost": {
+      "totalPrice": "Consultation fee",
+      "coverageAmount": "Insurance coverage",
+      "coPay": "Your co-pay"
+    },
+    "success": {
+      "title": "Booking confirmed!",
+      "description": "Your appointment has been booked. You will receive a confirmation shortly.",
+      "reference": "Reference",
+      "viewAppointments": "View my appointments"
+    },
+    "errors": {
+      "reasonRequired": "Please describe your reason for visiting.",
+      "reasonTooLong": "Reason must be {max} characters or fewer.",
+      "confirmFailed": "We couldn't confirm your booking. Please try again."
+    }
+  },
   "BookAppointmentPage": {
     "title": "Book an appointment",
     "description": "Select a specialty, choose a physician, and pick an available time slot.",
