@@ -6,6 +6,7 @@ import {useEffect, useState, Suspense} from "react";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import type {InsuranceVerificationResult} from "@/app/api/insurance/verify/route";
+import {PaymentForm} from "@/src/components/payments/PaymentForm";
 
 const REASON_MAX_LENGTH = 500;
 
@@ -36,8 +37,8 @@ function formatCurrency(amount: number) {
 
 type ConfirmState =
   | {phase: "loading"}
-  | {phase: "ready"; insurance: InsuranceVerificationResult}
-  | {phase: "submitting"; insurance: InsuranceVerificationResult}
+  | {phase: "ready"; insurance: InsuranceVerificationResult; patientId: string}
+  | {phase: "payment"; insurance: InsuranceVerificationResult; patientId: string}
   | {phase: "success"; appointmentId: string}
   | {phase: "error"; message: string};
 
@@ -48,7 +49,6 @@ function AppointmentConfirmContent() {
 
   const slotId = searchParams.get("slotId") ?? "";
   const physicianName = searchParams.get("physicianName") ?? "";
-  const physicianId = searchParams.get("physicianId") ?? "";
   const specialty = searchParams.get("specialty") ?? "";
   const startsAt = searchParams.get("startsAt") ?? "";
   const endsAt = searchParams.get("endsAt") ?? "";
@@ -61,55 +61,48 @@ function AppointmentConfirmContent() {
   useEffect(() => {
     let cancelled = false;
 
-    async function verifyInsurance() {
-      try {
-        const res = await fetch("/api/insurance/verify");
-        if (!res.ok) {
-          if (res.status === 401) {
-            setState({
-              phase: "ready",
-              insurance: {
-                status: "pending",
-                insuranceProvider: null,
-                policyNumber: null,
-                totalPrice: 500,
-                coverageAmount: 0,
-                coPay: 500,
-              },
-            });
-            return;
-          }
-          throw new Error(`Insurance verification failed: ${res.status}`);
-        }
-        const data = (await res.json()) as InsuranceVerificationResult;
-        if (!cancelled) {
-          setState({phase: "ready", insurance: data});
-        }
-      } catch {
-        if (!cancelled) {
-          setState({
-            phase: "ready",
-            insurance: {
-              status: "pending",
-              insuranceProvider: null,
-              policyNumber: null,
-              totalPrice: 500,
-              coverageAmount: 0,
-              coPay: 500,
-            },
-          });
-        }
+    async function loadConfirmData() {
+      const fallbackInsurance: InsuranceVerificationResult = {
+        status: "pending",
+        insuranceProvider: null,
+        policyNumber: null,
+        totalPrice: 500,
+        coverageAmount: 0,
+        coPay: 500,
+      };
+
+      // Fetch insurance and patient profile in parallel.
+      const [insuranceRes, profileRes] = await Promise.allSettled([
+        fetch("/api/insurance/verify"),
+        fetch("/api/patients/me"),
+      ]);
+
+      if (cancelled) return;
+
+      let insurance = fallbackInsurance;
+      if (insuranceRes.status === "fulfilled" && insuranceRes.value.ok) {
+        insurance = (await insuranceRes.value.json()) as InsuranceVerificationResult;
+      }
+
+      let patientId = "";
+      if (profileRes.status === "fulfilled" && profileRes.value.ok) {
+        const profile = (await profileRes.value.json()) as {patientId?: string};
+        patientId = profile.patientId ?? "";
+      }
+
+      if (!cancelled) {
+        setState({phase: "ready", insurance, patientId});
       }
     }
 
-    void verifyInsurance();
+    void loadConfirmData();
 
     return () => {
       cancelled = true;
     };
   }, []);
 
-  async function handleConfirm() {
+  function handleConfirm() {
     if (state.phase !== "ready") return;
 
     const trimmed = reasonForVisit.trim();
@@ -123,31 +116,7 @@ function AppointmentConfirmContent() {
     }
     setReasonError(null);
 
-    setState({phase: "submitting", insurance: state.insurance});
-
-    try {
-      const res = await fetch("/api/appointments", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          slotId,
-          physicianId: physicianId || undefined,
-          reasonForVisit: trimmed,
-          paymentId: "pending",
-        }),
-      });
-
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {error?: string};
-        throw new Error(data.error ?? t("errors.confirmFailed"));
-      }
-
-      const data = (await res.json()) as {appointmentId: string};
-      setState({phase: "success", appointmentId: data.appointmentId});
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t("errors.confirmFailed");
-      setState({phase: "error", message});
-    }
+    setState({phase: "payment", insurance: state.insurance, patientId: state.patientId});
   }
 
   if (state.phase === "success") {
@@ -172,8 +141,8 @@ function AppointmentConfirmContent() {
     );
   }
 
-  const insurance = state.phase === "ready" || state.phase === "submitting" ? state.insurance : null;
-  const isSubmitting = state.phase === "submitting";
+  const insurance = state.phase === "ready" || state.phase === "payment" ? state.insurance : null;
+  const isPaymentPhase = state.phase === "payment";
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -290,46 +259,60 @@ function AppointmentConfirmContent() {
         </CardContent>
       </Card>
 
-      {/* Reason for visit */}
-      <Card>
-        <CardHeader>
-          <CardTitle as="h2">{t("reasonTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="reason-for-visit">
-            {t("reasonLabel")}
-          </label>
-          <textarea
-            id="reason-for-visit"
-            rows={4}
-            maxLength={REASON_MAX_LENGTH}
-            value={reasonForVisit}
-            onChange={(e) => {
-              setReasonForVisit(e.target.value);
-              if (reasonError) setReasonError(null);
-            }}
-            placeholder={t("reasonPlaceholder")}
-            className="w-full resize-none rounded-md border border-border bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isSubmitting}
-            aria-describedby={reasonError ? "reason-error" : "reason-counter"}
-          />
-          <div className="flex items-center justify-between">
-            {reasonError ? (
-              <p id="reason-error" role="alert" className="text-xs text-red-600">
-                {reasonError}
+      {/* Reason for visit — hidden once the user proceeds to payment */}
+      {!isPaymentPhase && (
+        <Card>
+          <CardHeader>
+            <CardTitle as="h2">{t("reasonTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="reason-for-visit">
+              {t("reasonLabel")}
+            </label>
+            <textarea
+              id="reason-for-visit"
+              rows={4}
+              maxLength={REASON_MAX_LENGTH}
+              value={reasonForVisit}
+              onChange={(e) => {
+                setReasonForVisit(e.target.value);
+                if (reasonError) setReasonError(null);
+              }}
+              placeholder={t("reasonPlaceholder")}
+              className="w-full resize-none rounded-md border border-border bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              aria-describedby={reasonError ? "reason-error" : "reason-counter"}
+            />
+            <div className="flex items-center justify-between">
+              {reasonError ? (
+                <p id="reason-error" role="alert" className="text-xs text-red-600">
+                  {reasonError}
+                </p>
+              ) : (
+                <span />
+              )}
+              <p
+                id="reason-counter"
+                className={["text-xs", reasonForVisit.length > REASON_MAX_LENGTH * 0.9 ? "text-amber-600" : "text-muted-foreground"].join(" ")}
+              >
+                {reasonForVisit.length}/{REASON_MAX_LENGTH}
               </p>
-            ) : (
-              <span />
-            )}
-            <p
-              id="reason-counter"
-              className={["text-xs", reasonForVisit.length > REASON_MAX_LENGTH * 0.9 ? "text-amber-600" : "text-muted-foreground"].join(" ")}
-            >
-              {reasonForVisit.length}/{REASON_MAX_LENGTH}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payment widget — shown after the user clicks "Proceed to payment" */}
+      {state.phase === "payment" && (
+        <PaymentForm
+          patientId={state.patientId}
+          slotId={slotId}
+          amount={state.insurance.coPay}
+          description={`Telehealth consultation: ${specialty || "appointment"}`}
+          reasonForVisit={reasonForVisit.trim()}
+          onSuccess={(appointmentId) => setState({phase: "success", appointmentId})}
+          onCancel={() => setState({phase: "ready", insurance: state.insurance, patientId: state.patientId})}
+        />
+      )}
 
       {/* Error from submission */}
       {state.phase === "error" && (
@@ -338,24 +321,25 @@ function AppointmentConfirmContent() {
         </p>
       )}
 
-      {/* Actions */}
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button
-          type="button"
-          className="border border-border bg-transparent text-foreground"
-          onClick={() => router.back()}
-          disabled={isSubmitting}
-        >
-          {t("back")}
-        </Button>
-        <Button
-          type="button"
-          onClick={() => void handleConfirm()}
-          disabled={state.phase === "loading" || isSubmitting}
-        >
-          {isSubmitting ? t("confirming") : t("confirmBooking")}
-        </Button>
-      </div>
+      {/* Actions — hidden while the payment widget is active */}
+      {!isPaymentPhase && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            className="border border-border bg-transparent text-foreground"
+            onClick={() => router.back()}
+          >
+            {t("back")}
+          </Button>
+          <Button
+            type="button"
+            onClick={handleConfirm}
+            disabled={state.phase === "loading"}
+          >
+            {t("proceedToPayment")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

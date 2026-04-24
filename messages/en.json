@@ -80,11 +80,21 @@
       "saving": "Saving..."
     },
     "sections": {
-      "demographics": {"title": "Demographics"},
-      "contact": {"title": "Contact information"},
-      "insurance": {"title": "Insurance"},
-      "medical": {"title": "Medical summary"},
-      "communication": {"title": "Communication preferences"}
+      "demographics": {
+        "title": "Demographics"
+      },
+      "contact": {
+        "title": "Contact information"
+      },
+      "insurance": {
+        "title": "Insurance"
+      },
+      "medical": {
+        "title": "Medical summary"
+      },
+      "communication": {
+        "title": "Communication preferences"
+      }
     },
     "fields": {
       "fullName": "Full name",
@@ -154,7 +164,9 @@
       "reasonRequired": "Please describe your reason for visiting.",
       "reasonTooLong": "Reason must be {max} characters or fewer.",
       "confirmFailed": "We couldn't confirm your booking. Please try again."
-    }
+    },
+    "proceedToPayment": "Proceed to payment",
+    "paymentTitle": "Payment"
   },
   "BookAppointmentPage": {
     "title": "Book an appointment",
@@ -183,6 +195,20 @@
     "confirmationPlaceholder": "Booking confirmed! (Payment & confirmation flow coming soon.)",
     "errors": {
       "slotsUnavailable": "Appointment slots are currently unavailable. Please try again later."
+    }
+  },
+  "PaymentForm": {
+    "title": "Secure payment",
+    "initializing": "Initialising payment…",
+    "processing": "Confirming your booking…",
+    "widgetLabel": "LiqPay payment widget",
+    "retryPayment": "Retry payment",
+    "cancel": "Cancel",
+    "errors": {
+      "initFailed": "Failed to initialise payment. Please try again.",
+      "widgetLoadFailed": "Failed to load the payment widget. Please check your connection and try again.",
+      "paymentDeclined": "Your payment was not completed. Please try again.",
+      "confirmFailed": "Payment was received but we could not confirm your booking. Please contact support."
     }
   }
 }
