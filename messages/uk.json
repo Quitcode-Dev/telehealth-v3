@@ -109,5 +109,34 @@
       "loadFailed": "Не вдалося завантажити дані профілю.",
       "saveFailed": "Не вдалося зберегти зміни профілю."
     }
+  },
+  "BookAppointmentPage": {
+    "title": "Записатись на прийом",
+    "description": "Оберіть спеціальність, лікаря та доступний час для візиту.",
+    "stepIndicatorLabel": "Кроки запису",
+    "steps": {
+      "specialty": "Спеціальність",
+      "physician": "Лікар",
+      "datetime": "Дата та час",
+      "confirm": "Підтвердження"
+    },
+    "specialtySearchPlaceholder": "Пошук спеціальності…",
+    "selectedSpecialtyLabel": "Спеціальність",
+    "physicianLabel": "Лікар",
+    "dateLabel": "Дата",
+    "timeLabel": "Час",
+    "timeSlotsLabel": "Доступні часові слоти",
+    "anyAvailable": "Будь-який доступний",
+    "anyAvailableDescription": "Записатись до найближчого вільного лікаря",
+    "loading": "Завантаження…",
+    "loadingSlots": "Завантаження доступних слотів…",
+    "noResults": "Спеціальності не знайдено.",
+    "noSlots": "На цю дату немає вільних слотів.",
+    "back": "Назад",
+    "confirmBooking": "Підтвердити запис",
+    "confirmationPlaceholder": "Запис підтверджено! (Оплата та підтвердження — незабаром.)",
+    "errors": {
+      "slotsUnavailable": "Часові слоти наразі недоступні. Спробуйте пізніше."
+    }
   }
 }
