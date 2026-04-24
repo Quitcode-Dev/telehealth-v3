@@ -109,5 +109,34 @@
       "loadFailed": "Unable to load profile data.",
       "saveFailed": "Unable to save profile changes."
     }
+  },
+  "BookAppointmentPage": {
+    "title": "Book an appointment",
+    "description": "Select a specialty, choose a physician, and pick an available time slot.",
+    "stepIndicatorLabel": "Booking steps",
+    "steps": {
+      "specialty": "Specialty",
+      "physician": "Physician",
+      "datetime": "Date & Time",
+      "confirm": "Confirm"
+    },
+    "specialtySearchPlaceholder": "Search specialty…",
+    "selectedSpecialtyLabel": "Specialty",
+    "physicianLabel": "Physician",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "timeSlotsLabel": "Available time slots",
+    "anyAvailable": "Any available",
+    "anyAvailableDescription": "Book with the next available physician",
+    "loading": "Loading…",
+    "loadingSlots": "Loading available slots…",
+    "noResults": "No specialties found.",
+    "noSlots": "No available slots for this date.",
+    "back": "Back",
+    "confirmBooking": "Confirm booking",
+    "confirmationPlaceholder": "Booking confirmed! (Payment & confirmation flow coming soon.)",
+    "errors": {
+      "slotsUnavailable": "Appointment slots are currently unavailable. Please try again later."
+    }
   }
 }
