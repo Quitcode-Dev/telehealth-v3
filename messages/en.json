@@ -211,5 +211,49 @@
       "paymentDeclined": "Your payment was not completed. Please try again.",
       "confirmFailed": "Payment was received but we could not confirm your booking. Please contact support."
     }
+  },
+  "AppointmentsPage": {
+    "title": "My appointments",
+    "description": "View and manage your upcoming and past appointments.",
+    "loading": "Loading appointments…",
+    "tabs": {
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "cancelled": "Cancelled"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no_show": "No show"
+    },
+    "labels": {
+      "physician": "Physician",
+      "location": "Location",
+      "reason": "Reason"
+    },
+    "empty": {
+      "upcoming": "You have no upcoming appointments.",
+      "past": "You have no past appointments.",
+      "cancelled": "You have no cancelled appointments."
+    },
+    "actions": {
+      "reschedule": "Reschedule",
+      "cancel": "Cancel",
+      "bookNew": "Book an appointment"
+    },
+    "cancelDialog": {
+      "title": "Cancel appointment?",
+      "message": "Are you sure you want to cancel this appointment? This action cannot be undone.",
+      "policy": "Cancellations made less than 24 hours before the appointment may be subject to a cancellation fee according to the clinic's cancellation policy.",
+      "back": "Keep appointment",
+      "confirm": "Yes, cancel",
+      "cancelling": "Cancelling…"
+    },
+    "errors": {
+      "loadFailed": "Unable to load appointments. Please try again.",
+      "cancelFailed": "Unable to cancel the appointment. Please try again.",
+      "unauthorized": "Please log in to view your appointments."
+    }
   }
 }

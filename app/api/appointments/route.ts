@@ -1,5 +1,7 @@
 import {NextResponse} from "next/server";
 import {z} from "zod";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
@@ -28,6 +30,68 @@ type AppointmentMeta = {
 
 function isHelsiConfigured() {
   return Boolean(process.env.HELSI_API_BASE_URL && process.env.HELSI_API_TOKEN);
+}
+
+const UPCOMING_STATUSES = ["SCHEDULED"] as const;
+const PAST_STATUSES = ["COMPLETED", "NO_SHOW"] as const;
+
+export async function GET(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({error: "Appointments are unavailable"}, {status: 503});
+  }
+
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+
+  if (typeof userId !== "string") {
+    return NextResponse.json({error: "Unauthorized"}, {status: 401});
+  }
+
+  const patient = await prisma.patient.findUnique({
+    where: {userId},
+    select: {id: true},
+  });
+
+  if (!patient) {
+    return NextResponse.json({error: "Patient profile not found"}, {status: 404});
+  }
+
+  const url = new URL(request.url);
+  const statusParam = url.searchParams.get("status");
+  const now = new Date();
+
+  const upcomingWhere = {patientId: patient.id, status: {in: UPCOMING_STATUSES}, scheduledAt: {gte: now}};
+  const pastWhere = {
+    patientId: patient.id,
+    OR: [
+      {status: {in: PAST_STATUSES}},
+      {status: {in: UPCOMING_STATUSES}, scheduledAt: {lt: now}},
+    ],
+  };
+  const cancelledWhere = {patientId: patient.id, status: "CANCELLED" as const};
+  const allWhere = {patientId: patient.id};
+
+  const where =
+    statusParam === "upcoming" ? upcomingWhere :
+    statusParam === "past" ? pastWhere :
+    statusParam === "cancelled" ? cancelledWhere :
+    allWhere;
+
+  const appointments = await prisma.appointment.findMany({
+    where,
+    select: {
+      id: true,
+      scheduledAt: true,
+      status: true,
+      reasonForVisit: true,
+      providerName: true,
+      location: true,
+      notes: true,
+    },
+    orderBy: {scheduledAt: statusParam === "past" || statusParam === "cancelled" ? "desc" : "asc"},
+  });
+
+  return NextResponse.json({appointments});
 }
 
 export async function POST(request: Request) {
