@@ -4,6 +4,7 @@ import prisma from "@/src/lib/prisma";
 import {getHelsiAvailabilityService} from "@/src/lib/helsi/availability-service";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
 import {parseHelsiDateTime} from "@/src/lib/helsi/appointment-utils";
+import {getReminderService} from "@/src/lib/notifications/reminder-service";
 
 const createAppointmentSchema = z.object({
   slotId: z.string().trim().min(1),
@@ -104,6 +105,8 @@ export async function POST(request: Request) {
         scheduledAt: true,
       },
     });
+
+    void getReminderService().scheduleReminders(appointment.id);
 
     return NextResponse.json({
       appointmentId: appointment.id,
