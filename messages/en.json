@@ -212,6 +212,45 @@
       "confirmFailed": "Payment was received but we could not confirm your booking. Please contact support."
     }
   },
+  "LabResultsPage": {
+    "title": "My lab results",
+    "description": "View your released lab results, physician notes, and test summaries.",
+    "loading": "Loading results…",
+    "empty": "No released lab results found.",
+    "labels": {
+      "physician": "Ordering physician",
+      "result": "Result",
+      "physicianNote": "Physician note"
+    },
+    "indicators": {
+      "normal": "Normal",
+      "abnormal": "Abnormal",
+      "critical": "Critical",
+      "unknown": "Pending"
+    },
+    "category": {
+      "routine": "Routine",
+      "sensitive": "Sensitive"
+    },
+    "filters": {
+      "label": "Filter results",
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "category": "Result type",
+      "categoryAll": "All types",
+      "apply": "Apply",
+      "clear": "Clear filters"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {totalPages}"
+    },
+    "errors": {
+      "loadFailed": "Unable to load lab results. Please try again.",
+      "unauthorized": "Please log in to view your lab results."
+    }
+  },
   "AppointmentsPage": {
     "title": "My appointments",
     "description": "View and manage your upcoming and past appointments.",
