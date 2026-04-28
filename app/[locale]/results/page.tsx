@@ -2,6 +2,8 @@
 
 import {useTranslations} from "next-intl";
 import {useEffect, useState} from "react";
+import Link from "next/link";
+import {useParams} from "next/navigation";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent} from "@/src/components/ui/card";
 
@@ -94,56 +96,59 @@ function CategoryBadge({category}: {category: LabResultCategory | null}) {
   );
 }
 
-function LabResultCard({result}: {result: LabResult}) {
+function LabResultCard({result, locale}: {result: LabResult; locale: string}) {
   const t = useTranslations("LabResultsPage");
   const displayDate = result.releasedAt ?? result.observedAt;
   const physician = result.appointment?.providerName ?? result.sourceSystem;
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div className="space-y-1">
-              <h2 className="text-sm font-semibold">{result.testName}</h2>
-              <p className="text-xs text-muted-foreground">{formatDate(displayDate)}</p>
+    <Link href={`/${locale}/results/${result.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground rounded-lg hover:opacity-90 transition-opacity">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="space-y-1">
+                <h2 className="text-sm font-semibold">{result.testName}</h2>
+                <p className="text-xs text-muted-foreground">{formatDate(displayDate)}</p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <StatusBadge resultValue={result.resultValue} />
+                <CategoryBadge category={result.category} />
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              <StatusBadge resultValue={result.resultValue} />
-              <CategoryBadge category={result.category} />
-            </div>
-          </div>
 
-          {physician && (
-            <p className="text-sm text-muted-foreground">
-              {t("labels.physician")}:{" "}
-              <span className="font-medium text-foreground">{physician}</span>
-            </p>
-          )}
-
-          {result.resultValue && (
-            <p className="text-sm text-muted-foreground">
-              {t("labels.result")}:{" "}
-              <span className="font-medium text-foreground">{result.resultValue}</span>
-            </p>
-          )}
-
-          {result.contextNote && (
-            <div className="rounded-md border border-border bg-muted/40 px-3 py-2">
-              <p className="text-xs font-medium text-muted-foreground mb-1">
-                {t("labels.physicianNote")}
+            {physician && (
+              <p className="text-sm text-muted-foreground">
+                {t("labels.physician")}:{" "}
+                <span className="font-medium text-foreground">{physician}</span>
               </p>
-              <p className="text-sm text-foreground">{result.contextNote}</p>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            )}
+
+            {result.resultValue && (
+              <p className="text-sm text-muted-foreground">
+                {t("labels.result")}:{" "}
+                <span className="font-medium text-foreground">{result.resultValue}</span>
+              </p>
+            )}
+
+            {result.contextNote && (
+              <div className="rounded-md border border-border bg-muted/40 px-3 py-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  {t("labels.physicianNote")}
+                </p>
+                <p className="text-sm text-foreground">{result.contextNote}</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
 export default function LabResultsPage() {
   const t = useTranslations("LabResultsPage");
+  const {locale} = useParams<{locale: string}>();
 
   const [labResults, setLabResults] = useState<LabResult[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -314,7 +319,7 @@ export default function LabResultsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {labResults.map((result) => (
-            <LabResultCard key={result.id} result={result} />
+            <LabResultCard key={result.id} result={result} locale={locale} />
           ))}
         </div>
       )}
