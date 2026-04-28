@@ -317,6 +317,35 @@
       "sendFailed": "Unable to send your reply. Please try again."
     }
   },
+  "DashboardPage": {
+    "title": "Dashboard",
+    "description": "Welcome back. Here's a summary of your health activity.",
+    "loading": "Loading…",
+    "unreadMessages": "{count, plural, one {You have # unread message} other {You have # unread messages}}",
+    "sections": {
+      "quickActions": "Quick actions",
+      "upcomingAppointments": "Upcoming appointments",
+      "latestLabResults": "Latest lab results"
+    },
+    "actions": {
+      "bookAppointment": "Book appointment",
+      "viewResults": "View results",
+      "sendMessage": "Messages",
+      "updateProfile": "Update profile",
+      "viewAll": "View all"
+    },
+    "labels": {
+      "physician": "Physician"
+    },
+    "empty": {
+      "appointments": "No upcoming appointments.",
+      "labResults": "No lab results available."
+    },
+    "errors": {
+      "loadFailed": "Unable to load dashboard data. Please try again.",
+      "unauthorized": "Please log in to view your dashboard."
+    }
+  },
   "AppointmentsPage": {
     "title": "My appointments",
     "description": "View and manage your upcoming and past appointments.",
