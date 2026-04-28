@@ -4,6 +4,7 @@ import {getServerSession} from "next-auth";
 import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import {HelsiApiClient} from "@/src/lib/helsi/client";
+import {isValidPhoneNumber} from "@/src/lib/otp";
 
 const CHECK_IN_WINDOW_MS = 48 * 60 * 60 * 1000;
 
@@ -145,86 +146,115 @@ export async function POST(request: Request, context: RouteContext) {
 
   const data = parsed.data;
 
-  await prisma.$transaction(async (tx) => {
-    if (data.demographics) {
-      const userUpdateData: {firstName?: string; lastName?: string} = {};
-      if (data.demographics.firstName !== undefined) {
-        userUpdateData.firstName = data.demographics.firstName;
-      }
-      if (data.demographics.lastName !== undefined) {
-        userUpdateData.lastName = data.demographics.lastName;
-      }
-      if (Object.keys(userUpdateData).length > 0) {
-        await tx.user.update({where: {id: userId}, data: userUpdateData});
-      }
-    }
+  if (data.demographics?.phoneNumber && !isValidPhoneNumber(data.demographics.phoneNumber)) {
+    return NextResponse.json({error: "Invalid phone number"}, {status: 400});
+  }
 
-    const patientUpdateData: {
-      phoneNumber?: string;
-      emergencyContactName?: string;
-      emergencyContactPhone?: string;
-      allergies?: string;
-      currentMedications?: string;
-    } = {};
-    if (data.demographics?.phoneNumber !== undefined) {
-      patientUpdateData.phoneNumber = data.demographics.phoneNumber;
-    }
-    if (data.demographics?.emergencyContactName !== undefined) {
-      patientUpdateData.emergencyContactName = data.demographics.emergencyContactName;
-    }
-    if (data.demographics?.emergencyContactPhone !== undefined) {
-      patientUpdateData.emergencyContactPhone = data.demographics.emergencyContactPhone;
-    }
-    if (data.allergies !== undefined) {
-      patientUpdateData.allergies = data.allergies;
-    }
-    if (data.medications !== undefined) {
-      patientUpdateData.currentMedications = data.medications;
-    }
-    if (Object.keys(patientUpdateData).length > 0) {
-      await tx.patient.update({where: {id: patient.id}, data: patientUpdateData});
-    }
+  if (data.demographics?.emergencyContactPhone && !isValidPhoneNumber(data.demographics.emergencyContactPhone)) {
+    return NextResponse.json({error: "Invalid emergency contact phone number"}, {status: 400});
+  }
 
-    if (data.insurance) {
-      const {providerName, policyNumber, groupNumber} = data.insurance;
-      const hasInsuranceUpdate =
-        providerName !== undefined || policyNumber !== undefined || groupNumber !== undefined;
+  const checkInWindowEnd = new Date(Date.now() + CHECK_IN_WINDOW_MS);
 
-      if (hasInsuranceUpdate) {
-        const existingPrimary = await tx.insurancePolicy.findFirst({
-          where: {patientId: patient.id, isPrimary: true},
-          select: {id: true},
-        });
-
-        if (existingPrimary) {
-          const insuranceUpdateData: {
-            providerName?: string;
-            policyNumber?: string;
-            groupNumber?: string;
-          } = {};
-          if (providerName !== undefined) insuranceUpdateData.providerName = providerName;
-          if (policyNumber !== undefined) insuranceUpdateData.policyNumber = policyNumber;
-          if (groupNumber !== undefined) insuranceUpdateData.groupNumber = groupNumber;
-          await tx.insurancePolicy.update({where: {id: existingPrimary.id}, data: insuranceUpdateData});
-        } else if (providerName && policyNumber) {
-          const createData: {
-            patientId: string;
-            providerName: string;
-            policyNumber: string;
-            isPrimary: boolean;
-            groupNumber?: string;
-          } = {patientId: patient.id, providerName, policyNumber, isPrimary: true};
-          if (groupNumber !== undefined) createData.groupNumber = groupNumber;
-          await tx.insurancePolicy.create({data: createData});
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (data.demographics) {
+        const userUpdateData: {firstName?: string; lastName?: string} = {};
+        if (data.demographics.firstName !== undefined) {
+          userUpdateData.firstName = data.demographics.firstName;
+        }
+        if (data.demographics.lastName !== undefined) {
+          userUpdateData.lastName = data.demographics.lastName;
+        }
+        if (Object.keys(userUpdateData).length > 0) {
+          await tx.user.update({where: {id: userId}, data: userUpdateData});
         }
       }
-    }
 
-    await tx.appointment.update({
-      where: {id: appointment.id},
-      data: {status: "CHECKED_IN"},
+      const patientUpdateData: {
+        phoneNumber?: string;
+        emergencyContactName?: string;
+        emergencyContactPhone?: string;
+        allergies?: string;
+        currentMedications?: string;
+      } = {};
+      if (data.demographics?.phoneNumber !== undefined) {
+        patientUpdateData.phoneNumber = data.demographics.phoneNumber;
+      }
+      if (data.demographics?.emergencyContactName !== undefined) {
+        patientUpdateData.emergencyContactName = data.demographics.emergencyContactName;
+      }
+      if (data.demographics?.emergencyContactPhone !== undefined) {
+        patientUpdateData.emergencyContactPhone = data.demographics.emergencyContactPhone;
+      }
+      if (data.allergies !== undefined) {
+        patientUpdateData.allergies = data.allergies;
+      }
+      if (data.medications !== undefined) {
+        patientUpdateData.currentMedications = data.medications;
+      }
+      if (Object.keys(patientUpdateData).length > 0) {
+        await tx.patient.update({where: {id: patient.id}, data: patientUpdateData});
+      }
+
+      if (data.insurance) {
+        const {providerName, policyNumber, groupNumber} = data.insurance;
+        const hasInsuranceUpdate =
+          providerName !== undefined || policyNumber !== undefined || groupNumber !== undefined;
+
+        if (hasInsuranceUpdate) {
+          const existingPrimary = await tx.insurancePolicy.findFirst({
+            where: {patientId: patient.id, isPrimary: true},
+            select: {id: true},
+          });
+
+          if (existingPrimary) {
+            const insuranceUpdateData: {
+              providerName?: string;
+              policyNumber?: string;
+              groupNumber?: string;
+            } = {};
+            if (providerName !== undefined) insuranceUpdateData.providerName = providerName;
+            if (policyNumber !== undefined) insuranceUpdateData.policyNumber = policyNumber;
+            if (groupNumber !== undefined) insuranceUpdateData.groupNumber = groupNumber;
+            await tx.insurancePolicy.update({where: {id: existingPrimary.id}, data: insuranceUpdateData});
+          } else if (providerName && policyNumber) {
+            const createData: {
+              patientId: string;
+              providerName: string;
+              policyNumber: string;
+              isPrimary: boolean;
+              groupNumber?: string;
+            } = {patientId: patient.id, providerName, policyNumber, isPrimary: true};
+            if (groupNumber !== undefined) createData.groupNumber = groupNumber;
+            await tx.insurancePolicy.create({data: createData});
+          }
+        }
+      }
+
+      const appointmentUpdateResult = await tx.appointment.updateMany({
+        where: {
+          id: appointment.id,
+          patientId: patient.id,
+          status: "SCHEDULED",
+          scheduledAt: {
+            gt: new Date(),
+            lte: checkInWindowEnd,
+          },
+        },
+        data: {status: "CHECKED_IN"},
+      });
+
+      if (appointmentUpdateResult.count !== 1) {
+        throw new Error("Appointment is no longer eligible for check-in");
+      }
     });
-  });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Appointment is no longer eligible for check-in") {
+      return NextResponse.json({error: error.message}, {status: 409});
+    }
+    throw error;
+  }
 
   if (isHelsiConfigured()) {
     const meta = parseMeta(appointment.notes);
