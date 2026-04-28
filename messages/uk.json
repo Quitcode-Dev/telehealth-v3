@@ -397,6 +397,12 @@
     "title": "Сповіщення",
     "unreadBadge": "{count, plural, one {# непрочитане} few {# непрочитані} many {# непрочитаних} other {# непрочитаних}}",
     "empty": "У вас немає нових сповіщень.",
-    "unreadDot": "Непрочитане"
+    "unreadDot": "Непрочитане",
+    "timestamp": {
+      "justNow": "щойно",
+      "minutesAgo": "{count} хв тому",
+      "hoursAgo": "{count} год тому",
+      "daysAgo": "{count} д тому"
+    }
   }
 }

@@ -397,6 +397,12 @@
     "title": "Notifications",
     "unreadBadge": "{count, plural, one {# unread} other {# unread}}",
     "empty": "You have no new notifications.",
-    "unreadDot": "Unread"
+    "unreadDot": "Unread",
+    "timestamp": {
+      "justNow": "just now",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago"
+    }
   }
 }

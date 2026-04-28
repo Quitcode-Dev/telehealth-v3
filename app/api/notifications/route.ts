@@ -3,6 +3,10 @@ import {getServerSession} from "next-auth";
 import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 
+const MIN_LIMIT = 1;
+const MAX_LIMIT = 100;
+const DEFAULT_LIMIT = 10;
+
 export async function GET(request: Request) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({error: "Notifications are unavailable"}, {status: 503});
@@ -18,7 +22,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const unreadOnly = url.searchParams.get("unread") === "true";
   const limitParam = url.searchParams.get("limit");
-  const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || 10, 1), 100) : 10;
+  const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || DEFAULT_LIMIT, MIN_LIMIT), MAX_LIMIT) : DEFAULT_LIMIT;
 
   const notifications = await prisma.notification.findMany({
     where: {

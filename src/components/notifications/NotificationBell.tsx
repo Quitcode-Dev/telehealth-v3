@@ -27,10 +27,18 @@ type NotificationsResponse = {
 
 const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 const NOTIFICATIONS_API_URL = "/api/notifications?unread=true&limit=10";
+const POLL_INTERVAL_MS = 60_000;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatTimestamp(isoString: string): string {
+type TimestampTranslations = {
+  justNow: string;
+  minutesAgo: (mins: number) => string;
+  hoursAgo: (hours: number) => string;
+  daysAgo: (days: number) => string;
+};
+
+function formatTimestamp(isoString: string, ts: TimestampTranslations): string {
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -38,10 +46,10 @@ function formatTimestamp(isoString: string): string {
   const diffHours = Math.floor(diffMs / 3_600_000);
   const diffDays = Math.floor(diffMs / 86_400_000);
 
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) return ts.justNow;
+  if (diffMins < 60) return ts.minutesAgo(diffMins);
+  if (diffHours < 24) return ts.hoursAgo(diffHours);
+  if (diffDays < 7) return ts.daysAgo(diffDays);
   return date.toLocaleDateString();
 }
 
@@ -151,8 +159,6 @@ function NotificationTypeIcon({type}: {type: NotificationType}) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-const POLL_INTERVAL_MS = 60_000;
-
 export function NotificationBell() {
   const t = useTranslations("NotificationBell");
   const router = useRouter();
@@ -164,6 +170,13 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const timestampTranslations: TimestampTranslations = {
+    justNow: t("timestamp.justNow"),
+    minutesAgo: (mins) => t("timestamp.minutesAgo", {count: mins}),
+    hoursAgo: (hours) => t("timestamp.hoursAgo", {count: hours}),
+    daysAgo: (days) => t("timestamp.daysAgo", {count: days}),
+  };
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -177,11 +190,33 @@ export function NotificationBell() {
     }
   }, []);
 
-  // Initial fetch + polling
+  // Initial fetch + polling, paused when the tab is hidden
   useEffect(() => {
     void fetchNotifications();
-    const interval = setInterval(() => void fetchNotifications(), POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
+
+    let interval: ReturnType<typeof setInterval> | null = setInterval(
+      () => void fetchNotifications(),
+      POLL_INTERVAL_MS,
+    );
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      } else {
+        void fetchNotifications();
+        interval = setInterval(() => void fetchNotifications(), POLL_INTERVAL_MS);
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchNotifications]);
 
   // Close dropdown when clicking outside
@@ -279,7 +314,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-hidden="true"
-            className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground leading-none"
+            className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-xs font-bold text-destructive-foreground leading-none"
           >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
@@ -337,7 +372,7 @@ export function NotificationBell() {
                         {notification.content}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {formatTimestamp(notification.createdAt)}
+                        {formatTimestamp(notification.createdAt, timestampTranslations)}
                       </p>
                     </div>
                     {!notification.isRead && (
