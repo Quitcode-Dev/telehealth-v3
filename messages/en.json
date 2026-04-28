@@ -298,6 +298,25 @@
       "sendFailed": "Unable to send your message. Please try again."
     }
   },
+  "MessageThreadPage": {
+    "loading": "Loading thread…",
+    "back": "Back to messages",
+    "empty": "No messages in this thread.",
+    "replyLabel": "Your reply",
+    "replyPlaceholder": "Write your reply…",
+    "replyFormLabel": "Reply form",
+    "send": "Send",
+    "sending": "Sending…",
+    "you": "You",
+    "patient": "Patient",
+    "careTeam": "Care Team",
+    "errors": {
+      "loadFailed": "Unable to load this thread. Please try again.",
+      "unauthorized": "Please log in to view your messages.",
+      "notFound": "Thread not found.",
+      "sendFailed": "Unable to send your reply. Please try again."
+    }
+  },
   "AppointmentsPage": {
     "title": "My appointments",
     "description": "View and manage your upcoming and past appointments.",

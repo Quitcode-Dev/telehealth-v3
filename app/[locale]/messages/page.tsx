@@ -2,6 +2,7 @@
 
 import {useTranslations} from "next-intl";
 import {useEffect, useRef, useState} from "react";
+import Link from "next/link";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent} from "@/src/components/ui/card";
 
@@ -78,36 +79,38 @@ function ThreadCard({thread, currentUserId}: ThreadCardProps) {
     : formatRelativeTime(thread.updatedAt, t("yesterday"));
 
   return (
-    <Card className={isUnread ? "border-primary/40 bg-primary/5" : undefined}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className={`text-sm truncate ${isUnread ? "font-semibold" : "font-medium"}`}>
-                {careTeamName}
-              </span>
-              {isUnread && (
-                <span
-                  aria-label={t("unreadCount", {count: thread.unreadCount})}
-                  className="inline-flex items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground min-w-[1.25rem] shrink-0"
-                >
-                  {thread.unreadCount}
+    <Link href={`/messages/${thread.id}`} aria-label={`${thread.subject} — ${careTeamName}`} className="block hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground rounded-lg">
+      <Card className={isUnread ? "border-primary/40 bg-primary/5" : undefined}>
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className={`text-sm truncate ${isUnread ? "font-semibold" : "font-medium"}`}>
+                  {careTeamName}
                 </span>
+                {isUnread && (
+                  <span
+                    aria-label={t("unreadCount", {count: thread.unreadCount})}
+                    className="inline-flex items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground min-w-[1.25rem] shrink-0"
+                  >
+                    {thread.unreadCount}
+                  </span>
+                )}
+              </div>
+              <p className={`text-xs truncate ${isUnread ? "font-semibold text-foreground" : "text-foreground"}`}>
+                {thread.subject}
+              </p>
+              {thread.latestMessage && (
+                <p className="mt-0.5 text-xs text-muted-foreground truncate">
+                  {truncate(thread.latestMessage.body, 80)}
+                </p>
               )}
             </div>
-            <p className={`text-xs truncate ${isUnread ? "font-semibold text-foreground" : "text-foreground"}`}>
-              {thread.subject}
-            </p>
-            {thread.latestMessage && (
-              <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                {truncate(thread.latestMessage.body, 80)}
-              </p>
-            )}
+            <span className="text-xs text-muted-foreground shrink-0 mt-0.5">{displayTime}</span>
           </div>
-          <span className="text-xs text-muted-foreground shrink-0 mt-0.5">{displayTime}</span>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
