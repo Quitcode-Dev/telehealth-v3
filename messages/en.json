@@ -212,6 +212,26 @@
       "confirmFailed": "Payment was received but we could not confirm your booking. Please contact support."
     }
   },
+  "LabResultDetailPage": {
+    "back": "Back to results",
+    "date": "Date",
+    "loincCode": "LOINC code",
+    "downloadPdf": "Download PDF",
+    "observations": "Test results",
+    "columns": {
+      "test": "Test",
+      "value": "Value",
+      "flag": "Status"
+    },
+    "flags": {
+      "high": "High",
+      "low": "Low"
+    },
+    "errors": {
+      "notFound": "Lab result not found.",
+      "forbidden": "You do not have access to this lab result."
+    }
+  },
   "LabResultsPage": {
     "title": "My lab results",
     "description": "View your released lab results, physician notes, and test summaries.",
