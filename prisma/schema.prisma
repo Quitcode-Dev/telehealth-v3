@@ -148,6 +148,7 @@ model Notification {
   type        NotificationType
   title       String
   content     String
+  resourceId  String?   @db.Uuid
   isRead      Boolean   @default(false)
   deliveredAt DateTime?
   readAt      DateTime?

@@ -3,6 +3,7 @@
 import {LanguageSwitcher} from "@/app/[locale]/language-switcher";
 import type {ReactNode} from "react";
 import {useActiveProfile} from "@/src/components/family/ActiveProfileContext";
+import {NotificationBell} from "@/src/components/notifications/NotificationBell";
 
 type HeaderProps = {
   mobileMenuTrigger: ReactNode;
@@ -36,12 +37,7 @@ export function Header({mobileMenuTrigger}: HeaderProps) {
           </select>
         </label>
         <LanguageSwitcher className="hidden sm:block" />
-        <button
-          type="button"
-          className="rounded-md border border-border px-3 py-1 text-sm"
-        >
-          View alerts
-        </button>
+        <NotificationBell />
         <button
           type="button"
           className="rounded-md border border-border px-3 py-1 text-sm"
