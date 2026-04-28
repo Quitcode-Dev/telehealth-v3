@@ -15,7 +15,8 @@ model User {
   localePreference   String              @default("en") @db.VarChar(10)
   patientProfile     Patient?
   sentMessages       Message[]           @relation("MessageSender")
-  receivedMessages   Message[]           @relation("MessageRecipient")
+  createdThreads     MessageThread[]     @relation("ThreadCreator")
+  recipientThreads   MessageThread[]     @relation("ThreadRecipient")
   notifications      Notification[]
   proxyRelationships ProxyRelationship[] @relation("ProxyUser")
   createdAt          DateTime            @default(now())
@@ -81,17 +82,28 @@ model LabResult {
   updatedAt     DateTime            @updatedAt
 }
 
-model Message {
+model MessageThread {
   id          String    @id @default(uuid()) @db.Uuid
-  senderId    String    @db.Uuid
+  subject     String    @db.VarChar(200)
+  creatorId   String    @db.Uuid
   recipientId String    @db.Uuid
-  subject     String?
-  body        String
-  readAt      DateTime?
-  sender      User      @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  recipient   User      @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  creator     User      @relation("ThreadCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  recipient   User      @relation("ThreadRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model Message {
+  id        String        @id @default(uuid()) @db.Uuid
+  threadId  String        @db.Uuid
+  senderId  String        @db.Uuid
+  body      String
+  readAt    DateTime?
+  thread    MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }
 
 model ProxyRelationship {
