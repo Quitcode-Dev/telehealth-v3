@@ -42,7 +42,7 @@ function formatTimestamp(isoString: string, locale: string): string {
       minute: "2-digit",
     });
   } catch {
-    return isoString;
+    return "";
   }
 }
 
@@ -107,7 +107,9 @@ export default function MessageThreadPage() {
 
     // Mark thread as read on open; errors are intentionally ignored as this is a
     // best-effort operation that does not affect message display.
-    void fetch(`/api/messages/${params.threadId}/read`, {method: "PATCH"}).catch(() => null);
+    void fetch(`/api/messages/${params.threadId}/read`, {method: "PATCH"}).catch((err: unknown) => {
+      console.warn("[MessageThreadPage] Failed to mark thread as read:", err);
+    });
 
     return () => {
       cancelled = true;
