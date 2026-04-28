@@ -390,6 +390,58 @@
       "unauthorized": "Please log in to view your appointments."
     }
   },
+  "CheckInPage": {
+    "title": "Pre-visit check-in",
+    "description": "Please confirm or update your information before your appointment.",
+    "loading": "Loading your profile…",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Complete check-in",
+    "submitting": "Submitting…",
+    "steps": {
+      "demographics": "Demographics",
+      "insurance": "Insurance",
+      "medical": "Allergies & Medications",
+      "consent": "Consent"
+    },
+    "stepHints": {
+      "demographics": "Review your personal and contact details. Update any information that has changed.",
+      "insurance": "Confirm or update your insurance information.",
+      "medical": "Review your allergies and current medications.",
+      "consent": "Please read and confirm your consent before completing check-in."
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phoneNumber": "Phone number",
+      "emergencyContactName": "Emergency contact name",
+      "emergencyContactPhone": "Emergency contact phone",
+      "insuranceProviderName": "Insurance provider",
+      "insurancePolicyNumber": "Policy number",
+      "insuranceGroupNumber": "Group number",
+      "allergies": "Allergies",
+      "allergiesPlaceholder": "List any known allergies, or leave blank if none.",
+      "currentMedications": "Current medications",
+      "currentMedicationsPlaceholder": "List current medications and dosages, or leave blank if none."
+    },
+    "consentLabel": "I confirm the above information is accurate and consent to treatment.",
+    "consentText": {
+      "intro": "By completing this check-in you acknowledge that:",
+      "point1": "The information you have provided is accurate to the best of your knowledge.",
+      "point2": "You consent to the collection and processing of your health data for the purpose of your care.",
+      "point3": "You authorise the care team to proceed with the scheduled appointment."
+    },
+    "success": {
+      "title": "Check-in complete!",
+      "description": "Your information has been confirmed. You are checked in for your appointment.",
+      "viewAppointments": "View my appointments"
+    },
+    "errors": {
+      "loadFailed": "Unable to load your profile. Please try again.",
+      "consentRequired": "You must confirm your consent before completing check-in.",
+      "submitFailed": "We couldn't complete your check-in. Please try again."
+    }
+  },
   "NotificationBell": {
     "ariaLabel": "Notifications",
     "ariaLabelWithCount": "{count, plural, one {# unread notification} other {# unread notifications}}",
