@@ -79,7 +79,7 @@ function ThreadCard({thread, currentUserId}: ThreadCardProps) {
     : formatRelativeTime(thread.updatedAt, t("yesterday"));
 
   return (
-    <Link href={`/messages/${thread.id}`} className="block hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground rounded-lg">
+    <Link href={`/messages/${thread.id}`} aria-label={`${thread.subject} — ${careTeamName}`} className="block hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground rounded-lg">
       <Card className={isUnread ? "border-primary/40 bg-primary/5" : undefined}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">

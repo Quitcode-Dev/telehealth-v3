@@ -136,12 +136,7 @@ export default function MessageThreadPage() {
       });
 
       if (!res.ok) {
-        const payload = await res.json().catch(() => null);
-        const apiError =
-          payload && typeof payload === "object" && "error" in payload
-            ? String((payload as {error: unknown}).error)
-            : null;
-        setSendError(apiError ?? t("errors.sendFailed"));
+        setSendError(t("errors.sendFailed"));
         return;
       }
 
@@ -258,7 +253,7 @@ export default function MessageThreadPage() {
 
           {/* Reply form */}
           <form
-            onSubmit={(e) => void handleSendReply(e)}
+            onSubmit={handleSendReply}
             className="flex flex-col gap-2 border-t border-border pt-4 mt-2"
             aria-label={t("replyFormLabel")}
           >
