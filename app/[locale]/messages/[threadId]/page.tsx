@@ -1,7 +1,7 @@
 "use client";
 
-import {useTranslations} from "next-intl";
-import {useEffect, useRef, useState} from "react";
+import {useLocale, useTranslations} from "next-intl";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {useParams, useRouter} from "next/navigation";
 import {Button} from "@/src/components/ui/button";
 
@@ -32,9 +32,9 @@ type Thread = {
   updatedAt: string;
 };
 
-function formatTimestamp(isoString: string): string {
+function formatTimestamp(isoString: string, locale: string): string {
   try {
-    return new Date(isoString).toLocaleString([], {
+    return new Date(isoString).toLocaleString(locale, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -48,6 +48,7 @@ function formatTimestamp(isoString: string): string {
 
 export default function MessageThreadPage() {
   const t = useTranslations("MessageThreadPage");
+  const locale = useLocale();
   const params = useParams<{threadId: string}>();
   const router = useRouter();
 
@@ -62,9 +63,9 @@ export default function MessageThreadPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  function scrollToBottom() {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
-  }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +105,8 @@ export default function MessageThreadPage() {
 
     void fetchThread();
 
-    // Mark thread as read on open
+    // Mark thread as read on open; errors are intentionally ignored as this is a
+    // best-effort operation that does not affect message display.
     void fetch(`/api/messages/${params.threadId}/read`, {method: "PATCH"}).catch(() => null);
 
     return () => {
@@ -116,7 +118,7 @@ export default function MessageThreadPage() {
     if (thread) {
       scrollToBottom();
     }
-  }, [thread]);
+  }, [thread, scrollToBottom]);
 
   async function handleSendReply(e: React.FormEvent) {
     e.preventDefault();
@@ -181,7 +183,7 @@ export default function MessageThreadPage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [thread?.messages.length]);
+  }, [thread?.messages.length, scrollToBottom]);
 
   function getSenderRole(message: Message): string {
     if (message.senderId === currentUserId) return t("you");
@@ -245,7 +247,7 @@ export default function MessageThreadPage() {
                       {message.body}
                     </p>
                     <span className="text-xs text-muted-foreground self-end">
-                      {formatTimestamp(message.createdAt)}
+                      {formatTimestamp(message.createdAt, locale)}
                     </span>
                   </div>
                 );
