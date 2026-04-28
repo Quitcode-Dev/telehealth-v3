@@ -271,6 +271,33 @@
       "unauthorized": "Please log in to view your lab results."
     }
   },
+  "MessagesInboxPage": {
+    "title": "Messages",
+    "description": "View and send secure messages to your care team.",
+    "loading": "Loading messages…",
+    "empty": "No messages yet. Use the button above to send your first message.",
+    "newMessage": "New message",
+    "yesterday": "Yesterday",
+    "unreadCount": "{count} unread",
+    "compose": {
+      "title": "New message",
+      "formLabel": "Compose new message",
+      "recipientLabel": "Care team member",
+      "recipientPlaceholder": "Recipient ID",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "E.g. Follow-up question about my prescription",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "Write your message here…",
+      "send": "Send",
+      "sending": "Sending…",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "loadFailed": "Unable to load messages. Please try again.",
+      "unauthorized": "Please log in to view your messages.",
+      "sendFailed": "Unable to send your message. Please try again."
+    }
+  },
   "AppointmentsPage": {
     "title": "My appointments",
     "description": "View and manage your upcoming and past appointments.",
