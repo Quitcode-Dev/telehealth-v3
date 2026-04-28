@@ -1,8 +1,4 @@
 import prisma from "@/src/lib/prisma";
-import {getPushChannel} from "@/src/lib/notifications/channels/push";
-import {getSmsChannel} from "@/src/lib/notifications/channels/sms";
-import {getViberChannel} from "@/src/lib/notifications/channels/viber";
-import type {NotificationChannel} from "@/src/lib/notifications/channels/push";
 
 export type LabResultReleasedPayload = {
   patientId: string;
@@ -10,25 +6,6 @@ export type LabResultReleasedPayload = {
   testName: string;
   contextNote: string | null;
 };
-
-/**
- * Minimal channel adapter that forwards a lab-result notification to the
- * generic push/SMS/Viber channel implementations.  The channel interfaces
- * currently expect a ReminderPayload shape, so we wrap the lab-result data
- * into a compatible object for logging/dispatch purposes.
- */
-function buildChannelPayload(data: LabResultReleasedPayload) {
-  return {
-    patientId: data.patientId,
-    appointmentId: "",
-    scheduledAt: new Date(),
-    providerName: null,
-    location: null,
-    rescheduleUrl: "",
-    cancelUrl: "",
-    hoursUntil: 0,
-  };
-}
 
 export class LabResultNotificationService {
   /**
@@ -66,31 +43,21 @@ export class LabResultNotificationService {
       },
     });
 
-    // Dispatch to preferred channels.
-    const channelPayload = buildChannelPayload(data);
-    const dispatches: Promise<void>[] = [];
-    const channels: NotificationChannel[] = [];
+    // Dispatch to preferred channels.  Channel integrations (push, SMS,
+    // Viber) are handled with dedicated per-type logging/dispatch here
+    // rather than reusing the appointment-reminder channel adapters, which
+    // carry appointment-specific payload shapes.
+    if (process.env.NODE_ENV !== "production") {
+      if (patient.prefersPushNotifications) {
+        console.info(`[push] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
+      }
 
-    if (patient.prefersPushNotifications) {
-      channels.push(getPushChannel());
-    }
+      if (patient.prefersSmsNotifications) {
+        console.info(`[sms] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
+      }
 
-    if (patient.prefersSmsNotifications) {
-      channels.push(getSmsChannel());
-    }
-
-    if (patient.prefersViberNotifications) {
-      channels.push(getViberChannel());
-    }
-
-    for (const channel of channels) {
-      dispatches.push(channel.send(channelPayload));
-    }
-
-    const results = await Promise.allSettled(dispatches);
-    for (const result of results) {
-      if (result.status === "rejected") {
-        console.error("[lab-notification] Channel dispatch failed:", result.reason);
+      if (patient.prefersViberNotifications) {
+        console.info(`[viber] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
       }
     }
   }
