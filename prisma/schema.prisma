@@ -61,19 +61,23 @@ model Appointment {
 }
 
 model LabResult {
-  id            String       @id @default(uuid()) @db.Uuid
-  patientId     String       @db.Uuid
-  appointmentId String?      @db.Uuid
+  id            String              @id @default(uuid()) @db.Uuid
+  patientId     String              @db.Uuid
+  appointmentId String?             @db.Uuid
   testName      String
   resultValue   String?
-  status        LabResultStatus @default(PENDING)
+  status        LabResultStatus     @default(PENDING)
+  category      LabResultCategory?
+  loincCode     String?
+  fhirId        String?             @unique
+  sourceSystem  String?
   observedAt    DateTime?
   releasedAt    DateTime?
   attachmentUrl String?
-  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  patient       Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment   Appointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 }
 
 model Message {
@@ -178,6 +182,13 @@ enum LabResultStatus {
   PENDING
   COMPLETED
   REVIEWED
+  PENDING_REVIEW
+  AUTO_RELEASE
+}
+
+enum LabResultCategory {
+  ROUTINE
+  SENSITIVE
 }
 
 enum ProxyRelationshipType {
