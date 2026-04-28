@@ -23,6 +23,11 @@ type NotificationsResponse = {
   unreadCount: number;
 };
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+const NOTIFICATIONS_API_URL = "/api/notifications?unread=true&limit=10";
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatTimestamp(isoString: string): string {
@@ -47,17 +52,17 @@ function getNotificationHref(notification: Notification, locale: string): string
     case "APPOINTMENT":
     case "REMINDER": {
       // Extract appointment ID from content if possible (UUID pattern)
-      const match = content.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      const match = content.match(UUID_REGEX);
       if (match) return `/${locale}/appointments/${match[0]}`;
       return `/${locale}/appointments`;
     }
     case "LAB_RESULT": {
-      const match = content.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      const match = content.match(UUID_REGEX);
       if (match) return `/${locale}/results/${match[0]}`;
       return `/${locale}/results`;
     }
     case "MESSAGE": {
-      const match = content.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      const match = content.match(UUID_REGEX);
       if (match) return `/${locale}/messages/${match[0]}`;
       return `/${locale}/messages`;
     }
@@ -157,13 +162,12 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await fetch("/api/notifications?unread=true&limit=10");
+      const res = await fetch(NOTIFICATIONS_API_URL);
       if (!res.ok) return;
       const data: NotificationsResponse = await res.json();
       setNotifications(data.notifications);
@@ -231,14 +235,12 @@ export function NotificationBell() {
   }
 
   async function handleNotificationClick(notification: Notification) {
-    setLoading(true);
     if (!notification.isRead) {
       await markAsRead(notification.id);
     }
     const href = getNotificationHref(notification, locale);
     setOpen(false);
     router.push(href);
-    setLoading(false);
   }
 
   const toggleDropdown = () => {
@@ -259,7 +261,6 @@ export function NotificationBell() {
         aria-haspopup="true"
         onClick={toggleDropdown}
         className="relative rounded-md border border-border p-2 text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
-        disabled={loading}
       >
         {/* Bell icon */}
         <svg
