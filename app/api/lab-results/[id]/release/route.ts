@@ -3,8 +3,10 @@ import {z} from "zod";
 import prisma from "@/src/lib/prisma";
 import {getLabResultNotificationService} from "@/src/lib/lab/notification-service";
 
+const MAX_CONTEXT_NOTE_LENGTH = 2000;
+
 const releaseBodySchema = z.object({
-  contextNote: z.string().max(2000).optional(),
+  contextNote: z.string().max(MAX_CONTEXT_NOTE_LENGTH).optional(),
 });
 
 /**

@@ -47,18 +47,16 @@ export class LabResultNotificationService {
     // Viber) are handled with dedicated per-type logging/dispatch here
     // rather than reusing the appointment-reminder channel adapters, which
     // carry appointment-specific payload shapes.
-    if (process.env.NODE_ENV !== "production") {
-      if (patient.prefersPushNotifications) {
-        console.info(`[push] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
-      }
+    if (patient.prefersPushNotifications) {
+      console.info(`[push] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
+    }
 
-      if (patient.prefersSmsNotifications) {
-        console.info(`[sms] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
-      }
+    if (patient.prefersSmsNotifications) {
+      console.info(`[sms] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
+    }
 
-      if (patient.prefersViberNotifications) {
-        console.info(`[viber] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
-      }
+    if (patient.prefersViberNotifications) {
+      console.info(`[viber] Lab result notification for patient ${data.patientId}: ${title} — ${content}`);
     }
   }
 }
