@@ -115,10 +115,10 @@ export default function MessageThreadPage() {
   }, [params.threadId, t]);
 
   useEffect(() => {
-    if (thread) {
+    if ((thread?.messages.length ?? 0) > 0) {
       scrollToBottom();
     }
-  }, [thread, scrollToBottom]);
+  }, [thread?.messages.length, scrollToBottom]);
 
   async function handleSendReply(e: React.FormEvent) {
     e.preventDefault();
@@ -175,10 +175,6 @@ export default function MessageThreadPage() {
       setIsSending(false);
     }
   }
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [thread?.messages.length, scrollToBottom]);
 
   function getSenderRole(message: Message): string {
     if (message.senderId === currentUserId) return t("you");
