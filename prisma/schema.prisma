@@ -66,6 +66,7 @@ model LabResult {
   appointmentId String?             @db.Uuid
   testName      String
   resultValue   String?
+  contextNote   String?
   status        LabResultStatus     @default(PENDING)
   category      LabResultCategory?
   loincCode     String?
@@ -184,6 +185,7 @@ enum LabResultStatus {
   REVIEWED
   PENDING_REVIEW
   AUTO_RELEASE
+  RELEASED
 }
 
 enum LabResultCategory {

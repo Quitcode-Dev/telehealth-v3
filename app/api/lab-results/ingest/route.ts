@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import prisma from "@/src/lib/prisma";
 import {categorizeByLoincCode} from "@/src/lib/lab/categories";
+import {getAutoReleaseService} from "@/src/lib/lab/auto-release-service";
 
 const fhirCodingSchema = z.object({
   system: z.string().optional(),
@@ -139,6 +140,11 @@ export async function POST(request: Request) {
         createdAt: true,
       },
     });
+
+    // Schedule auto-release for routine results.
+    if (labResult.status === "AUTO_RELEASE") {
+      getAutoReleaseService().scheduleAutoRelease(labResult.id);
+    }
 
     return NextResponse.json({labResult}, {status: 201});
   } catch (error) {
