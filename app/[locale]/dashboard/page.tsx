@@ -3,6 +3,7 @@
 import {useTranslations} from "next-intl";
 import {useEffect, useState} from "react";
 import {useRouter, useParams} from "next/navigation";
+import Link from "next/link";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Button} from "@/src/components/ui/button";
 
@@ -124,21 +125,20 @@ export default function DashboardPage() {
             return;
           }
 
-          if (appointmentsRes.ok) {
-            const data = (await appointmentsRes.json()) as {appointments: Appointment[]};
-            setAppointments(data.appointments.slice(0, 3));
+          if (!appointmentsRes.ok || !labResultsRes.ok || !messagesRes.ok) {
+            setError(t("errors.loadFailed"));
+            return;
           }
 
-          if (labResultsRes.ok) {
-            const data = (await labResultsRes.json()) as {labResults: LabResult[]};
-            setLabResults(data.labResults.slice(0, 3));
-          }
+          const appointmentsData = (await appointmentsRes.json()) as {appointments: Appointment[]};
+          setAppointments(appointmentsData.appointments.slice(0, 3));
 
-          if (messagesRes.ok) {
-            const data = (await messagesRes.json()) as {threads: MessageThread[]};
-            const total = data.threads.reduce((sum, thread) => sum + thread.unreadCount, 0);
-            setUnreadCount(total);
-          }
+          const labResultsData = (await labResultsRes.json()) as {labResults: LabResult[]};
+          setLabResults(labResultsData.labResults.slice(0, 3));
+
+          const messagesData = (await messagesRes.json()) as {threads: MessageThread[]};
+          const total = messagesData.threads.reduce((sum, thread) => sum + thread.unreadCount, 0);
+          setUnreadCount(total);
         }
       } catch {
         if (!cancelled) {
@@ -184,17 +184,17 @@ export default function DashboardPage() {
         <h2 id="quick-actions-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {t("sections.quickActions")}
         </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {quickActions.map((action) => (
-            <Card
+            <Link
               key={action.href}
-              className="cursor-pointer transition-colors hover:bg-secondary"
-              onClick={() => router.push(action.href)}
+              href={action.href}
+              className="block rounded-lg border border-border bg-card shadow-sm transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
             >
-              <CardContent className="flex items-center p-4">
+              <div className="flex items-center p-4">
                 <span className="text-sm font-medium">{action.label}</span>
-              </CardContent>
-            </Card>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
