@@ -42,22 +42,22 @@ type ResultIndicator = "normal" | "abnormal" | "critical" | "unknown";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDateTime(isoString: string) {
+function formatDateTime(isoString: string, locale: string) {
   try {
     const date = new Date(isoString);
     return {
-      date: date.toLocaleDateString([], {weekday: "short", year: "numeric", month: "short", day: "numeric"}),
-      time: date.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}),
+      date: date.toLocaleDateString(locale, {weekday: "short", year: "numeric", month: "short", day: "numeric"}),
+      time: date.toLocaleTimeString(locale, {hour: "2-digit", minute: "2-digit"}),
     };
   } catch {
     return {date: isoString, time: ""};
   }
 }
 
-function formatDate(isoString: string | null): string {
+function formatDate(isoString: string | null, locale: string): string {
   if (!isoString) return "—";
   try {
-    return new Date(isoString).toLocaleDateString([], {year: "numeric", month: "short", day: "numeric"});
+    return new Date(isoString).toLocaleDateString(locale, {year: "numeric", month: "short", day: "numeric"});
   } catch {
     return isoString;
   }
@@ -235,7 +235,7 @@ export default function DashboardPage() {
               ) : (
                 <ul className="flex flex-col gap-3">
                   {appointments.map((appointment) => {
-                    const {date, time} = formatDateTime(appointment.scheduledAt);
+                    const {date, time} = formatDateTime(appointment.scheduledAt, locale);
                     return (
                       <li key={appointment.id} className="rounded-md border border-border p-3">
                         <p className="text-sm font-medium">{date}</p>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
                           <p className="text-sm font-medium">{result.testName}</p>
                           <ResultStatusBadge resultValue={result.resultValue} />
                         </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(displayDate)}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(displayDate, locale)}</p>
                       </li>
                     );
                   })}
