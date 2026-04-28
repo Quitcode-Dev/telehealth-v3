@@ -13,6 +13,7 @@ type Notification = {
   type: NotificationType;
   title: string;
   content: string;
+  resourceId: string | null;
   isRead: boolean;
   createdAt: string;
   readAt: string | null;
@@ -25,8 +26,7 @@ type NotificationsResponse = {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const UUID_REGEX = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-const NOTIFICATIONS_API_URL = "/api/notifications?unread=true&limit=10";
+const NOTIFICATIONS_API_URL = "/api/notifications?limit=10";
 const POLL_INTERVAL_MS = 60_000;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ type TimestampTranslations = {
   daysAgo: (days: number) => string;
 };
 
-function formatTimestamp(isoString: string, ts: TimestampTranslations): string {
+function formatTimestamp(isoString: string, ts: TimestampTranslations, locale: string): string {
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -50,30 +50,26 @@ function formatTimestamp(isoString: string, ts: TimestampTranslations): string {
   if (diffMins < 60) return ts.minutesAgo(diffMins);
   if (diffHours < 24) return ts.hoursAgo(diffHours);
   if (diffDays < 7) return ts.daysAgo(diffDays);
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(locale);
 }
 
 function getNotificationHref(notification: Notification, locale: string): string {
-  const content = notification.content;
+  const {resourceId, type} = notification;
 
-  switch (notification.type) {
+  switch (type) {
     case "APPOINTMENT":
-    case "REMINDER": {
-      // Extract appointment ID from content if possible (UUID pattern)
-      const match = content.match(UUID_REGEX);
-      if (match) return `/${locale}/appointments/${match[0]}`;
-      return `/${locale}/appointments`;
-    }
-    case "LAB_RESULT": {
-      const match = content.match(UUID_REGEX);
-      if (match) return `/${locale}/results/${match[0]}`;
-      return `/${locale}/results`;
-    }
-    case "MESSAGE": {
-      const match = content.match(UUID_REGEX);
-      if (match) return `/${locale}/messages/${match[0]}`;
-      return `/${locale}/messages`;
-    }
+    case "REMINDER":
+      return resourceId
+        ? `/${locale}/appointments/${resourceId}`
+        : `/${locale}/appointments`;
+    case "LAB_RESULT":
+      return resourceId
+        ? `/${locale}/results/${resourceId}`
+        : `/${locale}/results`;
+    case "MESSAGE":
+      return resourceId
+        ? `/${locale}/messages/${resourceId}`
+        : `/${locale}/messages`;
     default:
       return `/${locale}/dashboard`;
   }
@@ -255,11 +251,12 @@ export function NotificationBell() {
 
   async function markAsRead(notificationId: string) {
     try {
-      await fetch("/api/notifications", {
+      const res = await fetch("/api/notifications", {
         method: "PATCH",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({id: notificationId}),
       });
+      if (!res.ok) return;
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? {...n, isRead: true} : n)),
       );
@@ -325,7 +322,6 @@ export function NotificationBell() {
       {open && (
         <div
           ref={dropdownRef}
-          role="dialog"
           aria-label={t("dropdownLabel")}
           className="absolute right-0 top-full z-50 mt-2 w-80 rounded-md border border-border bg-background shadow-lg"
         >
@@ -372,7 +368,7 @@ export function NotificationBell() {
                         {notification.content}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {formatTimestamp(notification.createdAt, timestampTranslations)}
+                        {formatTimestamp(notification.createdAt, timestampTranslations, locale)}
                       </p>
                     </div>
                     {!notification.isRead && (

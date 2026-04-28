@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
+import {z} from "zod";
 import {authOptions} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 
@@ -22,7 +23,10 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const unreadOnly = url.searchParams.get("unread") === "true";
   const limitParam = url.searchParams.get("limit");
-  const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || DEFAULT_LIMIT, MIN_LIMIT), MAX_LIMIT) : DEFAULT_LIMIT;
+  const parsedLimit = limitParam === null ? DEFAULT_LIMIT : parseInt(limitParam, 10);
+  const limit = Number.isNaN(parsedLimit)
+    ? DEFAULT_LIMIT
+    : Math.min(Math.max(parsedLimit, MIN_LIMIT), MAX_LIMIT);
 
   const notifications = await prisma.notification.findMany({
     where: {
@@ -36,6 +40,7 @@ export async function GET(request: Request) {
       type: true,
       title: true,
       content: true,
+      resourceId: true,
       isRead: true,
       createdAt: true,
       readAt: true,
@@ -68,19 +73,27 @@ export async function PATCH(request: Request) {
     return NextResponse.json({error: "Notification ID is required"}, {status: 400});
   }
 
-  const notification = await prisma.notification.findFirst({
-    where: {id: notificationId, userId},
-    select: {id: true},
-  });
-
-  if (!notification) {
-    return NextResponse.json({error: "Notification not found"}, {status: 404});
+  if (!z.string().uuid().safeParse(notificationId).success) {
+    return NextResponse.json({error: "Invalid notification ID"}, {status: 400});
   }
 
-  await prisma.notification.update({
-    where: {id: notificationId},
+  const result = await prisma.notification.updateMany({
+    where: {
+      id: notificationId,
+      userId,
+      isRead: false,
+      readAt: null,
+    },
     data: {isRead: true, readAt: new Date()},
   });
+
+  if (result.count === 0) {
+    // Either not found, not owned by this user, or already read — all fine
+    const exists = await prisma.notification.count({where: {id: notificationId, userId}});
+    if (exists === 0) {
+      return NextResponse.json({error: "Notification not found"}, {status: 404});
+    }
+  }
 
   return NextResponse.json({success: true});
 }

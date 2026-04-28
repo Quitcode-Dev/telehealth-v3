@@ -40,6 +40,7 @@ export class LabResultNotificationService {
         type: "LAB_RESULT",
         title,
         content,
+        resourceId: data.labResultId,
       },
     });
 
