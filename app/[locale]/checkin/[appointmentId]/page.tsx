@@ -1,8 +1,9 @@
 "use client";
 
 import {useTranslations} from "next-intl";
-import {useParams, useRouter} from "next/navigation";
+import {useParams} from "next/navigation";
 import {useEffect, useState} from "react";
+import {useRouter} from "@/i18n/navigation";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Input} from "@/src/components/ui/input";
@@ -30,7 +31,7 @@ type ProfileResponse = {
   };
 };
 
-type FormData = {
+type CheckInFormData = {
   firstName: string;
   lastName: string;
   phoneNumber: string;
@@ -46,9 +47,9 @@ type FormData = {
 
 const TOTAL_STEPS = 4;
 
-function StepIndicator({currentStep, totalSteps, labels}: {currentStep: number; totalSteps: number; labels: string[]}) {
+function StepIndicator({currentStep, totalSteps, labels, navLabel}: {currentStep: number; totalSteps: number; labels: string[]; navLabel: string}) {
   return (
-    <nav aria-label="Check-in steps" className="mb-6">
+    <nav aria-label={navLabel} className="mb-6">
       <ol className="flex items-center gap-1">
         {Array.from({length: totalSteps}, (_, i) => {
           const step = i + 1;
@@ -97,7 +98,7 @@ export default function CheckInPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<CheckInFormData>({
     firstName: "",
     lastName: "",
     phoneNumber: "",
@@ -112,15 +113,19 @@ export default function CheckInPage() {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProfile() {
       try {
         const res = await fetch("/api/patients/me");
+        if (cancelled) return;
         if (!res.ok) {
           setErrorMessage(t("errors.loadFailed"));
           setIsLoading(false);
           return;
         }
         const profile = (await res.json()) as ProfileResponse;
+        if (cancelled) return;
         setFormData((prev) => ({
           ...prev,
           firstName: profile.demographics.firstName ?? "",
@@ -135,16 +140,20 @@ export default function CheckInPage() {
           currentMedications: profile.medicalSummary.currentMedications ?? "",
         }));
       } catch {
-        setErrorMessage(t("errors.loadFailed"));
+        if (!cancelled) setErrorMessage(t("errors.loadFailed"));
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
 
     void loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
   }, [t]);
 
-  function updateField(field: keyof FormData, value: string | boolean) {
+  function updateField(field: keyof CheckInFormData, value: string | boolean) {
     setFormData((prev) => ({...prev, [field]: value}));
   }
 
@@ -181,12 +190,14 @@ export default function CheckInPage() {
       });
 
       if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {error?: string} | null;
-        setErrorMessage(body?.error ?? t("errors.submitFailed"));
+        await res.json().catch(() => null);
+        setErrorMessage(t("errors.submitFailed"));
         return;
       }
 
       setIsSuccess(true);
+    } catch {
+      setErrorMessage(t("errors.submitFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -229,7 +240,7 @@ export default function CheckInPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
-      <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} labels={stepLabels} />
+      <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} labels={stepLabels} navLabel={t("stepsNavLabel")} />
 
       {errorMessage && (
         <p role="alert" className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -407,7 +418,7 @@ export default function CheckInPage() {
           onClick={() => {
             setErrorMessage(null);
             if (step > 1) {
-              setStep((s) => s - 1);
+              setStep((s) => Math.max(1, s - 1));
             } else {
               router.back();
             }
@@ -421,7 +432,7 @@ export default function CheckInPage() {
             type="button"
             onClick={() => {
               setErrorMessage(null);
-              setStep((s) => s + 1);
+              setStep((s) => Math.min(TOTAL_STEPS, s + 1));
             }}
           >
             {t("next")}

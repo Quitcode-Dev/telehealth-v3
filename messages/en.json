@@ -394,6 +394,7 @@
     "title": "Pre-visit check-in",
     "description": "Please confirm or update your information before your appointment.",
     "loading": "Loading your profile…",
+    "stepsNavLabel": "Check-in steps",
     "back": "Back",
     "next": "Next",
     "submit": "Complete check-in",
