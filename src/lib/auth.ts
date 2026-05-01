@@ -6,7 +6,8 @@ import prisma from "@/src/lib/prisma";
 import {isValidOtpCode, verifyAndConsumeOtpCode} from "@/src/lib/otp";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60;
-const PATIENT_ROLE = "patient";
+export const PATIENT_ROLE = "patient";
+export const ADMIN_ROLE = "admin";
 
 async function verifyOtpCode(phoneNumber: string, code: string) {
   const result = await verifyAndConsumeOtpCode(phoneNumber, code);

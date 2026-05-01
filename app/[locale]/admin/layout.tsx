@@ -2,9 +2,7 @@ import {getServerSession} from "next-auth";
 import {redirect} from "next/navigation";
 import Link from "next/link";
 import type {ReactNode} from "react";
-import {authOptions} from "@/src/lib/auth";
-
-const ADMIN_ROLE = "admin";
+import {authOptions, ADMIN_ROLE} from "@/src/lib/auth";
 
 const adminNavItems = [
   {label: "Proxy Approvals", href: "proxy-approvals"},
