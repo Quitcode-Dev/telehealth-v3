@@ -251,10 +251,8 @@ export function NotificationBell() {
 
   async function markAsRead(notificationId: string) {
     try {
-      const res = await fetch("/api/notifications", {
+      const res = await fetch(`/api/notifications/${notificationId}/read`, {
         method: "PATCH",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({id: notificationId}),
       });
       if (!res.ok) return;
       setNotifications((prev) =>
