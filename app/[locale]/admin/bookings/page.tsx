@@ -174,9 +174,10 @@ export default function AdminBookingsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Send the admin's local calendar date so the API query window matches the
-      // date shown in the page header, regardless of the server's timezone.
-      const todayISO = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD"
+      // Build the explicit YYYY-MM-DD string from local date parts to avoid relying
+      // on locale-dependent formatting that may vary across environments.
+      const d = new Date();
+      const todayISO = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const params = new URLSearchParams({date: todayISO});
       if (selectedClinic) params.set("location", selectedClinic);
       if (debouncedSearch) params.set("search", debouncedSearch);

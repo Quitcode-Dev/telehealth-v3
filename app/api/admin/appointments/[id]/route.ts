@@ -22,6 +22,8 @@ const VALID_TRANSITIONS: Record<string, AdminWritableStatus[]> = {
   SCHEDULED: ["CHECKED_IN", "NO_SHOW"],
   CHECKED_IN: ["COMPLETED", "NO_SHOW"],
   NO_SHOW: ["SCHEDULED"],
+  COMPLETED: [],
+  CANCELLED: [],
 };
 
 type RouteContext = {
