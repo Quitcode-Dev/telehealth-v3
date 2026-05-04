@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
 import {z} from "zod";
-import {authOptions} from "@/src/lib/auth";
+import {authOptions, ADMIN_ROLE} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 
 const createProxySchema = z.object({
@@ -87,31 +87,46 @@ export async function POST(request: Request) {
   return NextResponse.json(relationship, {status: 201});
 }
 
-export async function GET() {
+const validStatuses = ["PENDING", "APPROVED", "REJECTED"] as const;
+type ProxyStatus = (typeof validStatuses)[number];
+
+export async function GET(request: Request) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({error: "Proxy management is unavailable"}, {status: 503});
   }
 
-  const userId = await getUserId();
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  const isAdmin = session?.user?.role === ADMIN_ROLE;
 
-  if (!userId) {
+  if (typeof userId !== "string") {
     return unauthorized();
   }
 
+  const url = new URL(request.url);
+  const statusParam = url.searchParams.get("status")?.toUpperCase() as ProxyStatus | null;
+  const statusFilter = statusParam && (validStatuses as readonly string[]).includes(statusParam) ? statusParam : undefined;
+
+  const limitParam = parseInt(url.searchParams.get("limit") ?? "", 10);
+  const take = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : undefined;
+
+  const where = isAdmin
+    ? (statusFilter ? {status: statusFilter} : {})
+    : {
+        ...(statusFilter ? {status: statusFilter} : {}),
+        OR: [
+          {proxyUserId: userId},
+          {patient: {userId}},
+        ],
+      };
+
   const relationships = await prisma.proxyRelationship.findMany({
-    where: {
-      OR: [
-        {proxyUserId: userId},
-        {
-          patient: {
-            userId,
-          },
-        },
-      ],
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    where,
+    orderBy: [
+      {reviewedAt: "desc"},
+      {createdAt: "desc"},
+    ],
+    ...(take !== undefined ? {take} : {}),
     select: {
       id: true,
       proxyUserId: true,
@@ -125,6 +140,23 @@ export async function GET() {
       endsAt: true,
       createdAt: true,
       updatedAt: true,
+      proxyUser: {
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      patient: {
+        select: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
     },
   });
 
