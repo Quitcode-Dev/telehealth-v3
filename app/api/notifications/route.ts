@@ -43,15 +43,17 @@ export async function GET(request: Request) {
     ? DEFAULT_LIMIT
     : Math.min(Math.max(parsedLimit, MIN_LIMIT), MAX_LIMIT);
 
-  const typeFilter: NotificationType | undefined =
-    typeParam !== null && (VALID_NOTIFICATION_TYPES as readonly string[]).includes(typeParam)
-      ? (typeParam as NotificationType)
-      : undefined;
+  if (typeParam !== null && !(VALID_NOTIFICATION_TYPES as readonly string[]).includes(typeParam)) {
+    return NextResponse.json({error: "Invalid type filter"}, {status: 400});
+  }
 
-  const cursorId =
-    cursorParam !== null && z.string().uuid().safeParse(cursorParam).success
-      ? cursorParam
-      : undefined;
+  const typeFilter = typeParam !== null ? (typeParam as NotificationType) : undefined;
+
+  if (cursorParam !== null && !z.string().uuid().safeParse(cursorParam).success) {
+    return NextResponse.json({error: "Invalid cursor"}, {status: 400});
+  }
+
+  const cursorId = cursorParam ?? undefined;
 
   const notifications = await prisma.notification.findMany({
     where: {
@@ -59,7 +61,7 @@ export async function GET(request: Request) {
       ...(unreadOnly ? {isRead: false} : {}),
       ...(typeFilter ? {type: typeFilter} : {}),
     },
-    orderBy: {createdAt: "desc"},
+    orderBy: [{createdAt: "desc"}, {id: "desc"}],
     take: limit + 1,
     ...(cursorId ? {cursor: {id: cursorId}, skip: 1} : {}),
     select: {
@@ -77,7 +79,7 @@ export async function GET(request: Request) {
 
   const hasNextPage = notifications.length > limit;
   const page = hasNextPage ? notifications.slice(0, limit) : notifications;
-  const nextCursor = hasNextPage ? page[page.length - 1]?.id : null;
+  const nextCursor = hasNextPage ? page[page.length - 1]?.id ?? null : null;
 
   const unreadCount = await prisma.notification.count({
     where: {userId, isRead: false},
@@ -92,11 +94,13 @@ export async function POST(request: Request) {
   }
 
   const internalSecret = process.env.INTERNAL_API_SECRET;
-  if (internalSecret) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${internalSecret}`) {
-      return NextResponse.json({error: "Unauthorized"}, {status: 401});
-    }
+  if (!internalSecret) {
+    return NextResponse.json({error: "Notifications endpoint is not configured"}, {status: 503});
+  }
+
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${internalSecret}`) {
+    return NextResponse.json({error: "Unauthorized"}, {status: 401});
   }
 
   const body = await request.json().catch(() => null);
