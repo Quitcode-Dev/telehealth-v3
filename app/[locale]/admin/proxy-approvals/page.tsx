@@ -115,11 +115,11 @@ export default function ProxyApprovalsPage() {
     try {
       const [pendingRes, reviewedRes] = await Promise.all([
         fetch("/api/proxy?status=pending"),
-        fetch("/api/proxy?status=approved"),
+        fetch("/api/proxy?status=approved&limit=10"),
       ]);
 
       if (pendingRes.status === 401 || reviewedRes.status === 401) {
-        setError("You are not authorised to view this page.");
+        setError("You are not authorized to view this page.");
         return;
       }
 
@@ -131,15 +131,15 @@ export default function ProxyApprovalsPage() {
       const pending = (await pendingRes.json()) as ProxyRequest[];
       const approved = (await reviewedRes.json()) as ProxyRequest[];
 
-      // Also fetch rejected for audit trail
-      const rejectedRes = await fetch("/api/proxy?status=rejected");
+      // Also fetch rejected for audit trail (server-side limited)
+      const rejectedRes = await fetch("/api/proxy?status=rejected&limit=10");
       const rejected = rejectedRes.ok ? ((await rejectedRes.json()) as ProxyRequest[]) : [];
 
       setPendingRequests(pending);
       const reviewed = [...approved, ...rejected].sort(
         (a, b) => new Date(b.reviewedAt ?? b.createdAt).getTime() - new Date(a.reviewedAt ?? a.createdAt).getTime(),
       );
-      setAuditTrail(reviewed.slice(0, 20));
+      setAuditTrail(reviewed);
     } catch {
       setError("Unable to load proxy requests. Please try again.");
     } finally {

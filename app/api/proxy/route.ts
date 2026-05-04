@@ -99,13 +99,16 @@ export async function GET(request: Request) {
   const userId = session?.user?.id;
   const isAdmin = session?.user?.role === ADMIN_ROLE;
 
-  if (!userId) {
+  if (typeof userId !== "string") {
     return unauthorized();
   }
 
   const url = new URL(request.url);
   const statusParam = url.searchParams.get("status")?.toUpperCase() as ProxyStatus | null;
   const statusFilter = statusParam && (validStatuses as readonly string[]).includes(statusParam) ? statusParam : undefined;
+
+  const limitParam = parseInt(url.searchParams.get("limit") ?? "", 10);
+  const take = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : undefined;
 
   const where = isAdmin
     ? (statusFilter ? {status: statusFilter} : {})
@@ -119,9 +122,11 @@ export async function GET(request: Request) {
 
   const relationships = await prisma.proxyRelationship.findMany({
     where,
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {reviewedAt: "desc"},
+      {createdAt: "desc"},
+    ],
+    ...(take !== undefined ? {take} : {}),
     select: {
       id: true,
       proxyUserId: true,
