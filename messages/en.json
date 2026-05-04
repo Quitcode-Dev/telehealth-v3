@@ -443,6 +443,17 @@
       "submitFailed": "We couldn't complete your check-in. Please try again."
     }
   },
+  "ConsentBanner": {
+    "title": "Your consent is required",
+    "description": "To continue using this service, please review and accept our data processing terms in accordance with Ukrainian Law No. 2297-VI and GDPR.",
+    "legalLinkText": "View full consent text",
+    "version": "Consent version: {version}",
+    "accept": "Accept",
+    "accepting": "Accepting…",
+    "errors": {
+      "saveFailed": "Unable to save your consent. Please try again."
+    }
+  },
   "NotificationBell": {
     "ariaLabel": "Notifications",
     "ariaLabelWithCount": "{count, plural, one {# unread notification} other {# unread notifications}}",
