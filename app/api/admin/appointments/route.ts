@@ -23,25 +23,32 @@ export async function GET(request: Request) {
   const locationParam = url.searchParams.get("location");
   const searchParam = url.searchParams.get("search")?.trim() ?? "";
 
-  // Determine the date range to query
+  // Determine UTC day boundaries for the requested date.
+  // Dates are always treated as UTC calendar days so the query window is stable
+  // regardless of the server's local timezone. Callers should pass the date as
+  // the local calendar date in their own timezone (e.g. "2025-01-15").
   let startOfDay: Date;
   let endOfDay: Date;
 
   if (!dateParam || dateParam === "today") {
-    startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const now = new Date();
+    startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
   } else {
-    // Accept ISO date string like "2025-01-15"
-    const parsed = new Date(dateParam);
-    if (isNaN(parsed.getTime())) {
-      return NextResponse.json({error: "Invalid date parameter"}, {status: 400});
+    // Parse "YYYY-MM-DD" directly as a UTC calendar day to avoid local-timezone shifts
+    // that occur when passing an ISO date string to the `Date` constructor.
+    const parts = dateParam.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!parts) {
+      return NextResponse.json({error: "Invalid date parameter — expected YYYY-MM-DD"}, {status: 400});
     }
-    startOfDay = new Date(parsed);
-    startOfDay.setHours(0, 0, 0, 0);
-    endOfDay = new Date(parsed);
-    endOfDay.setHours(23, 59, 59, 999);
+    const year = Number(parts[1]);
+    const month = Number(parts[2]) - 1; // 0-indexed
+    const day = Number(parts[3]);
+    startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+    endOfDay = new Date(Date.UTC(year, month, day, 23, 59, 59, 999));
+    if (isNaN(startOfDay.getTime())) {
+      return NextResponse.json({error: "Invalid date parameter — expected YYYY-MM-DD"}, {status: 400});
+    }
   }
 
   // Build the base where clause
@@ -56,16 +63,30 @@ export async function GET(request: Request) {
   }
 
   if (searchParam) {
+    const terms = searchParam.trim().split(/\s+/);
+
+    // Build name match conditions. Each condition targets the nested patient.user relation.
+    // Single term → match firstName or lastName independently.
+    // Multiple terms → also try first-term → firstName AND last-term → lastName so that
+    // a query like "Jane Doe" correctly returns patients whose firstName contains "Jane"
+    // and lastName contains "Doe".
+    const nameOrConditions: {user: Record<string, unknown>}[] = [
+      {user: {firstName: {contains: searchParam, mode: "insensitive"}}},
+      {user: {lastName: {contains: searchParam, mode: "insensitive"}}},
+    ];
+
+    if (terms.length >= 2) {
+      nameOrConditions.push({
+        user: {
+          firstName: {contains: terms[0], mode: "insensitive"},
+          lastName: {contains: terms[terms.length - 1], mode: "insensitive"},
+        },
+      });
+    }
+
     where.patient = {
       OR: [
-        {
-          user: {
-            OR: [
-              {firstName: {contains: searchParam, mode: "insensitive"}},
-              {lastName: {contains: searchParam, mode: "insensitive"}},
-            ],
-          },
-        },
+        ...nameOrConditions,
         {phoneNumber: {contains: searchParam}},
       ],
     };

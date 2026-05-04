@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useState, useCallback} from "react";
+import {useEffect, useState, useCallback, useRef} from "react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Button} from "@/src/components/ui/button";
 import {Input} from "@/src/components/ui/input";
@@ -155,6 +155,10 @@ export default function AdminBookingsPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
+  // Ref to cancel in-flight fetches when filters change, preventing stale responses
+  // from an older request from overwriting the state for the user's current input.
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -162,21 +166,39 @@ export default function AdminBookingsPage() {
   }, [search]);
 
   const fetchAppointments = useCallback(async () => {
+    // Abort any previous in-flight request before starting a new one.
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({date: "today"});
+      // Send the admin's local calendar date so the API query window matches the
+      // date shown in the page header, regardless of the server's timezone.
+      const todayISO = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD"
+      const params = new URLSearchParams({date: todayISO});
       if (selectedClinic) params.set("location", selectedClinic);
       if (debouncedSearch) params.set("search", debouncedSearch);
 
-      const res = await fetch(`/api/admin/appointments?${params.toString()}`);
+      const res = await fetch(`/api/admin/appointments?${params.toString()}`, {
+        signal: controller.signal,
+      });
+
+      // Bail out silently if this request was superseded.
+      if (controller.signal.aborted) return;
 
       if (res.status === 401) {
+        // Clear stale data so no patient information is shown while unauthorized.
+        setAppointments([]);
+        setClinics([]);
         setError("You are not authorized to view this page.");
         return;
       }
 
       if (!res.ok) {
+        setAppointments([]);
+        setClinics([]);
         setError("Unable to load appointments. Please try again.");
         return;
       }
@@ -184,10 +206,15 @@ export default function AdminBookingsPage() {
       const data = (await res.json()) as ApiResponse;
       setAppointments(data.appointments);
       setClinics(data.clinics);
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      setAppointments([]);
+      setClinics([]);
       setError("Unable to load appointments. Please try again.");
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [selectedClinic, debouncedSearch]);
 
