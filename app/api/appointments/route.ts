@@ -60,7 +60,15 @@ export async function GET(request: Request) {
   const statusParam = url.searchParams.get("status");
   const now = new Date();
 
-  const upcomingWhere = {patientId: patient.id, status: {in: UPCOMING_STATUSES}, scheduledAt: {gte: now}};
+  // A CHECKED_IN appointment is actively in-progress. Include it in "upcoming" regardless
+  // of scheduledAt so it stays visible to the patient while they are being seen.
+  const upcomingWhere = {
+    patientId: patient.id,
+    OR: [
+      {status: {in: UPCOMING_STATUSES}, scheduledAt: {gte: now}},
+      {status: "CHECKED_IN" as const},
+    ],
+  };
   const pastWhere = {
     patientId: patient.id,
     OR: [

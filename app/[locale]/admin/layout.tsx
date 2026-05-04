@@ -6,7 +6,7 @@ import {authOptions, ADMIN_ROLE} from "@/src/lib/auth";
 
 const adminNavItems = [
   {label: "Proxy Approvals", href: "proxy-approvals"},
-  {label: "Booking Queue", href: "booking-queue"},
+  {label: "Booking Queue", href: "bookings"},
   {label: "Patient Search", href: "patient-search"},
 ];
 
