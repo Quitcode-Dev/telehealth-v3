@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
 import {Prisma} from "@prisma/client";
 import {z} from "zod";
-import {authOptions} from "@/src/lib/auth";
+import {authOptions, ADMIN_ROLE} from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 
 const updateProxyStatusSchema = z.object({
@@ -25,7 +25,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   const session = await getServerSession(authOptions);
   const userRole = session?.user?.role;
 
-  if (userRole !== "admin") {
+  if (userRole !== ADMIN_ROLE) {
     return unauthorized();
   }
 
