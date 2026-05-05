@@ -220,7 +220,10 @@ export default function AdminBookingsPage() {
   }, [selectedClinic, debouncedSearch]);
 
   useEffect(() => {
-    void fetchAppointments();
+    const timer = window.setTimeout(() => {
+      void fetchAppointments();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchAppointments]);
 
   async function handleStatusUpdate(appointmentId: string, newStatus: AppointmentStatus) {

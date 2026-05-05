@@ -148,7 +148,10 @@ export default function ProxyApprovalsPage() {
   }, []);
 
   useEffect(() => {
-    void fetchRequests();
+    const timer = window.setTimeout(() => {
+      void fetchRequests();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchRequests]);
 
   async function handleAction(id: string, status: "APPROVED" | "REJECTED") {

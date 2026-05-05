@@ -75,7 +75,10 @@ export function PaymentForm({
   const [state, setState] = useState<PaymentState>({status: "initializing"});
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const onSuccessRef = useRef(onSuccess);
-  onSuccessRef.current = onSuccess;
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
   const initPayment = useCallback(async () => {
     setState({status: "initializing"});
@@ -100,7 +103,10 @@ export function PaymentForm({
   }, [patientId, amount, description, slotId, t]);
 
   useEffect(() => {
-    void initPayment();
+    const timer = window.setTimeout(() => {
+      void initPayment();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [initPayment]);
 
   // Snapshot the widget credentials into stable variables so the

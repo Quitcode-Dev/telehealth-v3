@@ -193,7 +193,9 @@ export function NotificationBell() {
 
   // Initial fetch + polling, paused when the tab is hidden
   useEffect(() => {
-    void fetchNotifications();
+    const initialFetchTimer = window.setTimeout(() => {
+      void fetchNotifications();
+    }, 0);
 
     let interval: ReturnType<typeof setInterval> | null = setInterval(
       () => void fetchNotifications(),
@@ -215,6 +217,7 @@ export function NotificationBell() {
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
+      window.clearTimeout(initialFetchTimer);
       if (interval) clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };

@@ -4,7 +4,7 @@ import {useTranslations} from "next-intl";
 import {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import {Button} from "@/src/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
+import {Card, CardContent} from "@/src/components/ui/card";
 
 type AppointmentStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
 

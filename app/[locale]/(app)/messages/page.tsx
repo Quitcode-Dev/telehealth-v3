@@ -238,7 +238,7 @@ export default function MessagesInboxPage() {
 
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [physicians, setPhysicians] = useState<Physician[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCompose, setShowCompose] = useState(false);

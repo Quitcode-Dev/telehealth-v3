@@ -51,7 +51,10 @@ export function ConsentBanner({consentType, version, onAccepted}: ConsentBannerP
   }, [consentType, version]);
 
   useEffect(() => {
-    void checkConsent();
+    const timer = window.setTimeout(() => {
+      void checkConsent();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [checkConsent]);
 
   async function handleAccept() {
