@@ -41,6 +41,7 @@ model Patient {
   insurancePolicies        InsurancePolicy[]
   payments                 Payment[]
   incomingProxyDelegations ProxyRelationship[] @relation("ProxyPatient")
+  consentRecords           ConsentRecord[]
   user                     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
@@ -233,4 +234,23 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+}
+
+model ConsentRecord {
+  id          String      @id @default(uuid()) @db.Uuid
+  patientId   String      @db.Uuid
+  consentType ConsentType
+  version     String      @db.VarChar(50)
+  granted     Boolean
+  patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+
+  @@index([patientId, consentType])
+}
+
+enum ConsentType {
+  data_processing
+  lab_result_access
+  communication_preferences
+  proxy_access
 }
