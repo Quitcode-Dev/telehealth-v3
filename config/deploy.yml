@@ -9,9 +9,6 @@ builder:
     - amd64
     - arm64
 
-builder:
-  arch: amd64
-
 servers:
   web:
     - 91.98.68.42
