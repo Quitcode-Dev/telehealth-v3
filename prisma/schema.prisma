@@ -18,6 +18,7 @@ model User {
   createdThreads     MessageThread[]     @relation("ThreadCreator")
   recipientThreads   MessageThread[]     @relation("ThreadRecipient")
   notifications      Notification[]
+  auditLogs          AuditLog[]
   proxyRelationships ProxyRelationship[] @relation("ProxyUser")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -253,4 +254,32 @@ enum ConsentType {
   lab_result_access
   communication_preferences
   proxy_access
+}
+
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  /// Nullable so that deleting a User account does not cascade-delete or block
+  /// deletion of associated audit records.  Set to NULL automatically on user
+  /// deletion (SetNull), preserving the full audit trail for compliance.
+  userId     String?     @db.Uuid
+  action     AuditAction
+  resource   String      @db.VarChar(100)
+  resourceId String?     @db.VarChar(255)
+  ipAddress  String?     @db.VarChar(45)
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([resource, resourceId])
+}
+
+enum AuditAction {
+  login
+  profile_view
+  profile_update
+  result_view
+  appointment_create
+  proxy_approve
+  consent_change
 }
