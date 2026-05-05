@@ -1,4 +1,5 @@
 import {AuditAction, Prisma} from "@prisma/client";
+import {after} from "next/server";
 import {getServerSession} from "next-auth";
 import {NextResponse} from "next/server";
 import {authOptions} from "@/src/lib/auth";
@@ -64,23 +65,26 @@ export function extractIpAddress(request: Request): string | null {
   return request.headers.get("x-real-ip") ?? null;
 }
 
-type RouteHandler = (request: Request, context?: unknown) => Promise<NextResponse>;
+type RouteHandler = (request: Request, context: unknown) => Promise<NextResponse>;
 
 export type AuditOptions = {
   action: AuditAction;
   resource: string;
   /** Derive the resourceId from the parsed request at call time. */
-  getResourceId?: (request: Request, context?: unknown) => string | null | undefined;
+  getResourceId?: (request: Request, context: unknown) => string | null | undefined;
   /** Derive extra metadata from the parsed request at call time. */
-  getMetadata?: (request: Request, context?: unknown) => AuditMetadata | null | undefined;
+  getMetadata?: (request: Request, context: unknown) => AuditMetadata | null | undefined;
 };
 
 /**
  * Next.js API route wrapper that automatically logs access to patient data
- * endpoints.  The audit entry is written **after** the handler resolves so
- * that a failed or unauthorised request is not recorded as a successful
- * access.  If the handler returns a non-2xx status the entry is still logged
- * so that failed access attempts are captured for security review.
+ * endpoints.  The audit entry is written after the handler resolves using
+ * Next.js `after()`, which guarantees the callback runs even in serverless
+ * runtimes after the response has been streamed to the client.
+ *
+ * Only authenticated requests (those with a resolved session user ID) are
+ * logged.  The response status code is included in the metadata so reviewers
+ * can distinguish successful accesses from rejected ones.
  *
  * Usage:
  * ```ts
@@ -91,25 +95,26 @@ export type AuditOptions = {
  * ```
  */
 export function withAuditLog(handler: RouteHandler, options: AuditOptions): RouteHandler {
-  return async (request: Request, context?: unknown): Promise<NextResponse> => {
+  return async (request: Request, context: unknown): Promise<NextResponse> => {
     const response = await handler(request, context);
 
-    // Fire-and-forget: do not let audit failures affect the response.
-    (async () => {
+    const statusCode = response.status;
+    const ipAddress = extractIpAddress(request);
+    const resourceId = options.getResourceId?.(request, context) ?? null;
+    const callerMetadata = options.getMetadata?.(request, context) ?? null;
+    const metadata: AuditMetadata = {statusCode, ...callerMetadata};
+
+    after(async () => {
       try {
         const session = await getServerSession(authOptions);
         const userId = session?.user?.id;
         if (typeof userId !== "string") return;
 
-        const ipAddress = extractIpAddress(request);
-        const resourceId = options.getResourceId?.(request, context) ?? null;
-        const metadata = options.getMetadata?.(request, context) ?? null;
-
         await getAuditLogger().log(userId, options.action, options.resource, resourceId, metadata, ipAddress);
       } catch (err) {
         console.error("[audit] withAuditLog post-handler logging failed:", err);
       }
-    })();
+    });
 
     return response;
   };
