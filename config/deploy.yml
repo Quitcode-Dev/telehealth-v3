@@ -22,6 +22,11 @@ registry:
 ssh:
   user: root
   port: 22
+  keepalive: true
+  keepalive_interval: 30
+
+sshkit:
+  pool_idle_timeout: 1800
 
 proxy:
   ssl: true
