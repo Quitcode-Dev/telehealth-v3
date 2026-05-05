@@ -1,0 +1,82 @@
+name: Deploy
+run-name: Automatron ${{ inputs.action }} / ${{ inputs.automatron_run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        options:
+          - setup
+          - deploy
+          - rollback
+        required: true
+        default: deploy
+      rollback_to:
+        type: string
+        required: false
+      automatron_run_id:
+        type: string
+        required: true
+
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install Kamal
+        run: gem install kamal -v 2.4.0
+
+      - name: Write Kamal secrets
+        env:
+          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+        run: |
+          mkdir -p .kamal
+          : > .kamal/secrets
+          printf 'KAMAL_REGISTRY_PASSWORD=%s\n' "$KAMAL_REGISTRY_PASSWORD" >> .kamal/secrets
+
+      - name: SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+
+      - name: Run Kamal action
+        env:
+          ACTION: ${{ inputs.action || 'deploy' }}
+          ROLLBACK_TO: ${{ inputs.rollback_to }}
+        run: |
+          set -euo pipefail
+          case "$ACTION" in
+            setup)
+              kamal setup
+              ;;
+            deploy)
+              kamal deploy
+              ;;
+            rollback)
+              if [ -z "$ROLLBACK_TO" ]; then
+                echo "rollback_to input is required for rollback action" >&2
+                exit 1
+              fi
+              kamal rollback "$ROLLBACK_TO"
+              ;;
+            *)
+              echo "Unknown action: $ACTION" >&2
+              exit 1
+              ;;
+          esac
