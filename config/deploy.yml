@@ -4,6 +4,9 @@
 service: telehealth-v3
 image: ghcr.io/quitcode-dev/telehealth-v3
 
+builder:
+  arch: amd64
+
 servers:
   web:
     - 91.98.68.42
