@@ -1,10 +1,7 @@
+import {ConsentType} from "@prisma/client";
 import prisma from "@/src/lib/prisma";
 
-export type ConsentType =
-  | "data_processing"
-  | "lab_result_access"
-  | "communication_preferences"
-  | "proxy_access";
+export type {ConsentType};
 
 export type ConsentStatus = {
   granted: boolean;
@@ -28,14 +25,18 @@ export class ConsentService {
       return;
     }
 
-    await prisma.consentRecord.create({
-      data: {
-        patientId,
-        consentType,
-        version,
-        granted,
-      },
-    });
+    try {
+      await prisma.consentRecord.create({
+        data: {
+          patientId,
+          consentType,
+          version,
+          granted,
+        },
+      });
+    } catch (err) {
+      console.error("[consent] Failed to record consent:", err);
+    }
   }
 
   /**
@@ -48,17 +49,22 @@ export class ConsentService {
       return {granted: false, version: null, recordedAt: null};
     }
 
-    const record = await prisma.consentRecord.findFirst({
-      where: {patientId, consentType},
-      orderBy: {createdAt: "desc"},
-      select: {granted: true, version: true, createdAt: true},
-    });
+    try {
+      const record = await prisma.consentRecord.findFirst({
+        where: {patientId, consentType},
+        orderBy: {createdAt: "desc"},
+        select: {granted: true, version: true, createdAt: true},
+      });
 
-    if (!record) {
+      if (!record) {
+        return {granted: false, version: null, recordedAt: null};
+      }
+
+      return {granted: record.granted, version: record.version, recordedAt: record.createdAt};
+    } catch (err) {
+      console.error("[consent] Failed to check consent:", err);
       return {granted: false, version: null, recordedAt: null};
     }
-
-    return {granted: record.granted, version: record.version, recordedAt: record.createdAt};
   }
 }
 

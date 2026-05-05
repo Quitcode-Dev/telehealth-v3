@@ -244,7 +244,6 @@ model ConsentRecord {
   granted     Boolean
   patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 
   @@index([patientId, consentType])
 }

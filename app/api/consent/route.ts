@@ -1,11 +1,12 @@
 import {NextResponse} from "next/server";
 import {getServerSession} from "next-auth";
 import {z} from "zod";
+import {ConsentType} from "@prisma/client";
 import {authOptions} from "@/src/lib/auth";
 import {getConsentService} from "@/src/lib/compliance/consent";
 import prisma from "@/src/lib/prisma";
 
-const CONSENT_TYPES = ["data_processing", "lab_result_access", "communication_preferences", "proxy_access"] as const;
+const CONSENT_TYPES = Object.values(ConsentType) as [ConsentType, ...ConsentType[]];
 
 const recordConsentSchema = z.object({
   consentType: z.enum(CONSENT_TYPES),
@@ -17,19 +18,29 @@ function unauthorized() {
   return NextResponse.json({error: "Unauthorized"}, {status: 401});
 }
 
-async function getPatientId(): Promise<string | null> {
+function patientNotFound() {
+  return NextResponse.json({error: "Patient profile not found"}, {status: 404});
+}
+
+type PatientLookupResult =
+  | {status: "ok"; patientId: string}
+  | {status: "unauthorized"}
+  | {status: "not_found"};
+
+async function resolvePatient(): Promise<PatientLookupResult> {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
-  if (typeof userId !== "string") return null;
+  if (typeof userId !== "string") return {status: "unauthorized"};
 
-  if (!process.env.DATABASE_URL) return null;
+  if (!process.env.DATABASE_URL) return {status: "not_found"};
 
   const patient = await prisma.patient.findUnique({
     where: {userId},
     select: {id: true},
   });
 
-  return patient?.id ?? null;
+  if (!patient) return {status: "not_found"};
+  return {status: "ok", patientId: patient.id};
 }
 
 export async function GET(request: Request) {
@@ -37,10 +48,9 @@ export async function GET(request: Request) {
     return NextResponse.json({error: "Consent service unavailable"}, {status: 503});
   }
 
-  const patientId = await getPatientId();
-  if (!patientId) {
-    return unauthorized();
-  }
+  const lookup = await resolvePatient();
+  if (lookup.status === "unauthorized") return unauthorized();
+  if (lookup.status === "not_found") return patientNotFound();
 
   const {searchParams} = new URL(request.url);
   const consentType = searchParams.get("type");
@@ -50,7 +60,7 @@ export async function GET(request: Request) {
     return NextResponse.json({error: "Invalid consent type"}, {status: 400});
   }
 
-  const status = await getConsentService().checkConsent(patientId, parsed.data);
+  const status = await getConsentService().checkConsent(lookup.patientId, parsed.data);
 
   return NextResponse.json({
     granted: status.granted,
@@ -64,10 +74,9 @@ export async function POST(request: Request) {
     return NextResponse.json({error: "Consent service unavailable"}, {status: 503});
   }
 
-  const patientId = await getPatientId();
-  if (!patientId) {
-    return unauthorized();
-  }
+  const lookup = await resolvePatient();
+  if (lookup.status === "unauthorized") return unauthorized();
+  if (lookup.status === "not_found") return patientNotFound();
 
   const body = await request.json().catch(() => null);
   const parsed = recordConsentSchema.safeParse(body);
@@ -77,7 +86,7 @@ export async function POST(request: Request) {
   }
 
   await getConsentService().recordConsent(
-    patientId,
+    lookup.patientId,
     parsed.data.consentType,
     parsed.data.version,
     parsed.data.granted,

@@ -34,14 +34,18 @@ export function ConsentBanner({consentType, version, onAccepted}: ConsentBannerP
   const checkConsent = useCallback(async () => {
     try {
       const res = await fetch(`/api/consent?type=${encodeURIComponent(consentType)}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        // On API errors (including auth/503), show banner as safe default
+        setVisible(true);
+        return;
+      }
       const data = (await res.json()) as {granted: boolean; version: string | null};
       // Show banner if consent has never been granted or version has changed
       if (!data.granted || data.version !== version) {
         setVisible(true);
       }
     } catch {
-      // Non-critical: show banner as a safe default
+      // Network error: show banner as a safe default
       setVisible(true);
     }
   }, [consentType, version]);
@@ -79,8 +83,7 @@ export function ConsentBanner({consentType, version, onAccepted}: ConsentBannerP
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
+      role="region"
       aria-labelledby="consent-banner-title"
       aria-describedby="consent-banner-description"
       className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background p-4 shadow-lg sm:p-6"
