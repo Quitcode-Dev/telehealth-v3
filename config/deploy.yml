@@ -2,10 +2,12 @@
 # Do not edit by hand. Re-run "Generate artifacts" in Automatron to update.
 
 service: telehealth-v3
-image: ghcr.io/quitcode-dev/telehealth-v3
+image: quitcode-dev/telehealth-v3
 
 builder:
-  arch: amd64
+  arch:
+    - amd64
+    - arm64
 
 servers:
   web:
