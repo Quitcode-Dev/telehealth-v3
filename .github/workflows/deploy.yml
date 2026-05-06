@@ -73,6 +73,9 @@ jobs:
                 kamal setup
                 ;;
               deploy)
+                # Release any stale deploy lock left by a previously interrupted run.
+                # Safe because the 'production' concurrency group prevents concurrent deploys.
+                kamal lock release || true
                 kamal deploy
                 ;;
               rollback)

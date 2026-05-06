@@ -30,10 +30,12 @@ proxy:
   ssl: true
   host: telehealthv3.duckdns.org
   app_port: 3000
+  response_timeout: 30
   healthcheck:
     path: /api/health
     interval: 3
-    timeout: 5
+    timeout: 10
+    max_attempts: 10
 
 env:
   clear:
