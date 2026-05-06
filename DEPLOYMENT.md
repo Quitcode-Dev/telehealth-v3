@@ -25,6 +25,9 @@ Pushes to `main` do **not** trigger production deploys; use Automatron.
 
 - `KAMAL_REGISTRY_PASSWORD` — registry credential for `ghcr.io`.
 - `KAMAL_SSH_PRIVATE_KEY` — SSH key Kamal uses to reach `91.98.68.42`.
+- `DATABASE_URL` — PostgreSQL connection string for the application.
+- `NEXTAUTH_SECRET` — secret used to sign NextAuth.js JWT tokens.
+- `NEXTAUTH_URL` — canonical URL of the deployment (e.g. `https://telehealthv3.duckdns.org`).
 
 ## Rollback
 
