@@ -40,3 +40,7 @@ env:
     NODE_ENV: production
     PORT: "3000"
     HOSTNAME: "0.0.0.0"
+  secret:
+    - DATABASE_URL
+    - NEXTAUTH_SECRET
+    - NEXTAUTH_URL
