@@ -8,6 +8,8 @@ import {DemoExperienceCard} from "@/src/components/demo/DemoExperienceCard";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Button} from "@/src/components/ui/button";
 
+const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type AppointmentStatus = "SCHEDULED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
@@ -122,15 +124,17 @@ export default function DashboardPage() {
       setError(null);
 
       try {
-        const sessionRes = await fetch("/api/auth/session", {cache: "no-store"});
-        const session = sessionRes.ok ? ((await sessionRes.json()) as AuthSession) : null;
+        if (DEMO_MODE_ENABLED) {
+          const sessionRes = await fetch("/api/auth/session", {cache: "no-store"});
+          const session = sessionRes.ok ? ((await sessionRes.json()) as AuthSession) : null;
 
-        if (session?.user?.isDemo && session.user.role === "patient") {
-          if (!cancelled) {
-            setIsDemoPatient(true);
-            setIsLoading(false);
+          if (session?.user?.isDemo && session.user.role === "patient") {
+            if (!cancelled) {
+              setIsDemoPatient(true);
+              setIsLoading(false);
+            }
+            return;
           }
-          return;
         }
 
         const [appointmentsRes, labResultsRes, messagesRes] = await Promise.all([
@@ -140,8 +144,6 @@ export default function DashboardPage() {
         ]);
 
         if (!cancelled) {
-          setIsDemoPatient(false);
-
           if (appointmentsRes.status === 401 || labResultsRes.status === 401 || messagesRes.status === 401) {
             setError(t("errors.unauthorized"));
             return;
