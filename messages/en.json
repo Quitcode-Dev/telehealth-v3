@@ -26,6 +26,13 @@
     "resendOtp": "Resend code",
     "resendCountdown": "Resend available in {seconds}s",
     "resendReady": "You can resend the code now.",
+    "demo": {
+      "divider": "Try the demo",
+      "title": "Sign in instantly with a pre-seeded persona",
+      "badge": "Demo — read-only simulation",
+      "action": "Continue",
+      "signingIn": "Signing in..."
+    },
     "errors": {
       "phoneFormat": "Enter a valid Ukrainian number in format +380XXXXXXXXX.",
       "sendOtpFailed": "We couldn't send the OTP code. Please try again.",
@@ -329,6 +336,23 @@
     "title": "Dashboard",
     "description": "Welcome back. Here's a summary of your health activity.",
     "loading": "Loading…",
+    "demo": {
+      "title": "Welcome, Oksana",
+      "description": "You are viewing the patient demo workspace with sample shortcuts and read-only navigation.",
+      "card": {
+        "title": "Patient journey preview",
+        "description": "Explore the main patient flows without changing any production data."
+      },
+      "highlights": {
+        "appointments": "Preview appointment booking and follow-up flows from the patient perspective.",
+        "results": "Review how lab results and visit summaries appear after release.",
+        "messages": "Open messaging and profile screens with a seeded patient identity."
+      },
+      "actions": {
+        "appointments": "View appointments",
+        "profile": "Open profile"
+      }
+    },
     "unreadMessages": "{count, plural, one {You have # unread message} other {You have # unread messages}}",
     "sections": {
       "quickActions": "Quick actions",
@@ -352,6 +376,40 @@
     "errors": {
       "loadFailed": "Unable to load dashboard data. Please try again.",
       "unauthorized": "Please log in to view your dashboard."
+    }
+  },
+  "PhysicianDemoPage": {
+    "title": "Physician demo",
+    "description": "Review the clinician-facing workspace with a simulated physician persona.",
+    "card": {
+      "title": "Dr. Shevchuk's preview",
+      "description": "Use this demo to inspect how schedules, follow-up work, and patient communication are presented."
+    },
+    "highlights": {
+      "schedule": "Browse the physician workflow from schedule review through visit preparation.",
+      "queue": "Check the patient queue and handoff surfaces without modifying live records.",
+      "messages": "Open patient communication views with a seeded clinician identity."
+    },
+    "actions": {
+      "viewPatientSchedule": "View patient schedule",
+      "openMessages": "Open messages"
+    }
+  },
+  "AdminDemoPage": {
+    "title": "Admin demo",
+    "description": "Inspect the admin workspace with safe, read-only demo access.",
+    "card": {
+      "title": "Admin control room preview",
+      "description": "Review operational workflows and governance touchpoints without touching live data."
+    },
+    "highlights": {
+      "proxyApprovals": "Walk through proxy approval review and related operational safeguards.",
+      "bookings": "Inspect booking queue tools and appointment oversight screens.",
+      "auditReadiness": "Preview compliance-oriented admin views with a seeded administrator session."
+    },
+    "actions": {
+      "reviewBookings": "Review bookings",
+      "openProxyApprovals": "Open proxy approvals"
     }
   },
   "AppointmentsPage": {

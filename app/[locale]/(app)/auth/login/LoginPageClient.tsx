@@ -7,6 +7,7 @@ import {type KeyboardEvent, useEffect, useMemo, useRef, useState} from "react";
 import {Button} from "@/src/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Input} from "@/src/components/ui/input";
+import type {DemoLoginOption} from "@/src/lib/demo-auth";
 import {OTP_ERRORS} from "@/src/lib/otp-errors";
 
 const OTP_LENGTH = 6;
@@ -19,6 +20,7 @@ type LoginPageClientProps = {
   callbackUrl: string;
   initialPhoneNumber?: string;
   initialStep?: LoginStep;
+  demoLogins?: DemoLoginOption[];
 };
 
 function parseApiError(payload: unknown) {
@@ -38,7 +40,7 @@ function getVerifyOtpErrorMessage(t: ReturnType<typeof useTranslations>, error: 
   return error === OTP_ERRORS.INCORRECT || error === OTP_ERRORS.EXPIRED ? t("errors.otpIncorrect") : t("errors.verifyOtpFailed");
 }
 
-export function LoginPageClient({callbackUrl, initialPhoneNumber, initialStep = "phone"}: LoginPageClientProps) {
+export function LoginPageClient({callbackUrl, initialPhoneNumber, initialStep = "phone", demoLogins = []}: LoginPageClientProps) {
   const t = useTranslations("LoginPage");
   const router = useRouter();
   const startsAtOtp = initialStep === "otp" && !!initialPhoneNumber;
@@ -47,6 +49,7 @@ export function LoginPageClient({callbackUrl, initialPhoneNumber, initialStep = 
   const [otpDigits, setOtpDigits] = useState<string[]>(Array.from({length: OTP_LENGTH}, () => ""));
   const [countdown, setCountdown] = useState(startsAtOtp ? RESEND_COOLDOWN_SECONDS : 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeDemoRole, setActiveDemoRole] = useState<DemoLoginOption["role"] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -200,6 +203,26 @@ export function LoginPageClient({callbackUrl, initialPhoneNumber, initialStep = 
     otpInputRefs.current[0]?.focus();
   }
 
+  async function handleDemoLogin(demoLogin: DemoLoginOption) {
+    setErrorMessage(null);
+    setActiveDemoRole(demoLogin.role);
+
+    const signInResult = await signIn("demo-login", {
+      demoRole: demoLogin.role,
+      callbackUrl: demoLogin.redirectPath,
+      redirect: false,
+    });
+
+    if (!signInResult || signInResult.error) {
+      setErrorMessage(t("errors.signInFailed"));
+      setActiveDemoRole(null);
+      return;
+    }
+
+    router.push(signInResult.url ?? demoLogin.redirectPath);
+    router.refresh();
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-col justify-center py-12">
       <Card>
@@ -284,6 +307,50 @@ export function LoginPageClient({callbackUrl, initialPhoneNumber, initialStep = 
           )}
         </CardContent>
       </Card>
+      {demoLogins.length > 0 ? (
+        <div className="mt-6 space-y-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">{t("demo.divider")}</span>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-muted/50 p-4">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <p className="text-sm font-medium">{t("demo.title")}</p>
+              <span className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                {t("demo.badge")}
+              </span>
+            </div>
+            <div className="grid gap-3">
+              {demoLogins.map((demoLogin) => {
+                const isActive = activeDemoRole === demoLogin.role;
+
+                return (
+                  <Button
+                    key={demoLogin.role}
+                    type="button"
+                    disabled={isSubmitting || activeDemoRole !== null}
+                    className="h-auto w-full justify-between gap-3 border border-border bg-background px-4 py-3 text-left text-foreground hover:bg-secondary"
+                    onClick={() => void handleDemoLogin(demoLogin)}
+                  >
+                    <span className="flex min-w-0 flex-col">
+                      <span className="font-medium">{demoLogin.label}</span>
+                      <span className="truncate text-xs text-muted-foreground">{demoLogin.displayName}</span>
+                      <span className="truncate text-xs text-muted-foreground">{demoLogin.email}</span>
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {isActive ? t("demo.signingIn") : t("demo.action")}
+                    </span>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

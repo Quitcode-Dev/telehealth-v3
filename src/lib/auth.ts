@@ -2,6 +2,7 @@ import {PrismaAdapter} from "@auth/prisma-adapter";
 import type {Adapter} from "next-auth/adapters";
 import type {NextAuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import {getDemoPersonaConfig, isDemoModeEnabled, isDemoRole} from "@/src/lib/demo-auth";
 import prisma from "@/src/lib/prisma";
 import {isValidOtpCode, verifyAndConsumeOtpCode} from "@/src/lib/otp";
 
@@ -89,6 +90,35 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    CredentialsProvider({
+      id: "demo-login",
+      name: "Demo Login",
+      credentials: {
+        demoRole: {label: "Demo role", type: "text"},
+      },
+      async authorize(credentials) {
+        const demoRole = credentials?.demoRole?.trim();
+
+        if (!demoRole || !isDemoModeEnabled() || !isDemoRole(demoRole)) {
+          return null;
+        }
+
+        const persona = getDemoPersonaConfig(demoRole);
+
+        if (!persona) {
+          return null;
+        }
+
+        return {
+          id: `demo-${persona.role}`,
+          name: persona.displayName,
+          email: persona.email,
+          locale: persona.locale,
+          role: persona.role,
+          isDemo: true,
+        };
+      },
+    }),
   ],
   callbacks: {
     async jwt({token, user}) {
@@ -97,6 +127,7 @@ export const authOptions: NextAuthOptions = {
         token.phone = user.phone;
         token.locale = user.locale;
         token.role = user.role;
+        token.isDemo = user.isDemo;
       }
 
       return token;
@@ -116,6 +147,7 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = typeof token.phone === "string" ? token.phone : null;
         session.user.locale = typeof token.locale === "string" ? token.locale : "en";
         session.user.role = typeof token.role === "string" ? token.role : PATIENT_ROLE;
+        session.user.isDemo = token.isDemo === true;
       }
 
       return session;
