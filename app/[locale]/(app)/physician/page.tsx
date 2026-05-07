@@ -15,7 +15,7 @@ export default async function PhysicianPage({params}: PhysicianPageProps) {
     getTranslations({locale, namespace: "PhysicianDemoPage"}),
   ]);
 
-  if (!session?.user || session.user.role !== "physician") {
+  if (!session?.user || session.user.role !== "physician" || !session.user.isDemo) {
     redirect(`/${locale}/dashboard`);
   }
 

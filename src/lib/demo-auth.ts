@@ -88,14 +88,13 @@ export function getDemoLoginOptions(locale: string): DemoLoginOption[] {
   }
 
   return (Object.keys(DEMO_PERSONAS) as DemoRole[]).map((role) => {
-    const persona = getDemoPersona(role, locale)!;
-
+    const persona = DEMO_PERSONAS[role];
     return {
       role: persona.role,
       label: persona.label,
       displayName: persona.displayName,
       email: persona.email,
-      redirectPath: persona.redirectPath,
+      redirectPath: getRedirectPath(locale, persona.basePath),
     };
   });
 }
