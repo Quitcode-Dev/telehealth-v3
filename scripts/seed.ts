@@ -254,6 +254,28 @@ function scheduledAt(daysFromToday: number, hour: number, minute = 0) {
   return value;
 }
 
+function formatReminderLead(appointmentDate: Date) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfAppointmentDay = new Date(appointmentDate);
+  startOfAppointmentDay.setHours(0, 0, 0, 0);
+
+  const dayDifference = Math.round(
+    (startOfAppointmentDay.getTime() - startOfToday.getTime()) / (24 * 60 * 60 * 1000),
+  );
+
+  if (dayDifference <= 0) {
+    return "today";
+  }
+
+  if (dayDifference === 1) {
+    return "tomorrow";
+  }
+
+  return `in ${dayDifference} days`;
+}
+
 const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333331",
@@ -438,7 +460,7 @@ const REMINDER_NOTIFICATIONS = [
     userId: USERS.oksana.id,
     resourceId: APPOINTMENTS[2].id,
     title: "Appointment reminder",
-    content: `${DEMO_PHYSICIANS[2].name} tomorrow at ${APPOINTMENTS[2].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
+    content: `${DEMO_PHYSICIANS[2].name} ${formatReminderLead(APPOINTMENTS[2].scheduledAt)} at ${APPOINTMENTS[2].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
     link: "/appointments",
   },
   {
@@ -446,7 +468,7 @@ const REMINDER_NOTIFICATIONS = [
     userId: USERS.oksana.id,
     resourceId: APPOINTMENTS[3].id,
     title: "Appointment reminder",
-    content: `${DEMO_PHYSICIANS[0].name} in 5 days at ${APPOINTMENTS[3].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
+    content: `${DEMO_PHYSICIANS[0].name} ${formatReminderLead(APPOINTMENTS[3].scheduledAt)} at ${APPOINTMENTS[3].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
     link: "/appointments",
   },
   {
@@ -454,7 +476,7 @@ const REMINDER_NOTIFICATIONS = [
     userId: USERS.marta.id,
     resourceId: APPOINTMENTS[6].id,
     title: "Appointment reminder",
-    content: `${DEMO_PHYSICIANS[1].name} in 2 days at ${APPOINTMENTS[6].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
+    content: `${DEMO_PHYSICIANS[1].name} ${formatReminderLead(APPOINTMENTS[6].scheduledAt)} at ${APPOINTMENTS[6].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
     link: "/appointments",
   },
 ] as const;
