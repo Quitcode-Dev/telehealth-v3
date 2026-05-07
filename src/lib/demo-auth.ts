@@ -10,7 +10,6 @@ export type DemoLoginOption = {
 
 type DemoPersona = DemoLoginOption & {
   locale: string;
-  password: string;
 };
 
 const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -25,7 +24,6 @@ const DEMO_PERSONAS: Record<DemoRole, DemoPersonaConfig> = {
     label: "Patient",
     displayName: "Oksana Kovalchuk",
     email: process.env.DEMO_PATIENT_EMAIL ?? "demo.patient@medbridge.dev",
-    password: process.env.DEMO_PATIENT_PASSWORD ?? "demo-patient",
     locale: "uk",
     basePath: "/dashboard",
   },
@@ -34,7 +32,6 @@ const DEMO_PERSONAS: Record<DemoRole, DemoPersonaConfig> = {
     label: "Physician",
     displayName: "Dr. Shevchuk",
     email: process.env.DEMO_PHYSICIAN_EMAIL ?? "demo.physician@medbridge.dev",
-    password: process.env.DEMO_PHYSICIAN_PASSWORD ?? "demo-physician",
     locale: "en",
     basePath: "/physician",
   },
@@ -43,7 +40,6 @@ const DEMO_PERSONAS: Record<DemoRole, DemoPersonaConfig> = {
     label: "Admin",
     displayName: "Admin",
     email: process.env.DEMO_ADMIN_EMAIL ?? "demo.admin@medbridge.dev",
-    password: process.env.DEMO_ADMIN_PASSWORD ?? "demo-admin",
     locale: "en",
     basePath: "/admin",
   },

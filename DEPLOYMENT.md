@@ -28,9 +28,9 @@ Pushes to `main` do **not** trigger production deploys; use Automatron.
 - `DATABASE_URL` — PostgreSQL connection string for the application.
 - `NEXTAUTH_SECRET` — secret used to sign NextAuth.js JWT tokens.
 - `NEXT_PUBLIC_DEMO_MODE` — set to `true` to expose one-click demo personas on the login page. Only enable this in non-production environments.
-- `DEMO_PATIENT_EMAIL` / `DEMO_PATIENT_PASSWORD` — optional non-production overrides for the patient demo persona.
-- `DEMO_PHYSICIAN_EMAIL` / `DEMO_PHYSICIAN_PASSWORD` — optional non-production overrides for the physician demo persona.
-- `DEMO_ADMIN_EMAIL` / `DEMO_ADMIN_PASSWORD` — optional non-production overrides for the admin demo persona.
+- `DEMO_PATIENT_EMAIL` — optional non-production override for the patient demo persona email.
+- `DEMO_PHYSICIAN_EMAIL` — optional non-production override for the physician demo persona email.
+- `DEMO_ADMIN_EMAIL` — optional non-production override for the admin demo persona email.
 - `NEXTAUTH_URL` — canonical URL of the deployment (e.g. `https://telehealthv3.duckdns.org`).
 
 ## Rollback

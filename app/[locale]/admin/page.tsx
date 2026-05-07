@@ -1,5 +1,8 @@
+import {getServerSession} from "next-auth";
 import {getTranslations} from "next-intl/server";
+import {redirect} from "next/navigation";
 import {DemoExperienceCard} from "@/src/components/demo/DemoExperienceCard";
+import {authOptions, ADMIN_ROLE} from "@/src/lib/auth";
 
 type AdminPageProps = {
   params: Promise<{locale: string}>;
@@ -7,7 +10,14 @@ type AdminPageProps = {
 
 export default async function AdminPage({params}: AdminPageProps) {
   const {locale} = await params;
-  const t = await getTranslations({locale, namespace: "AdminDemoPage"});
+  const [session, t] = await Promise.all([
+    getServerSession(authOptions),
+    getTranslations({locale, namespace: "AdminDemoPage"}),
+  ]);
+
+  if (!session?.user || session.user.role !== ADMIN_ROLE || !session.user.isDemo) {
+    redirect(`/${locale}/dashboard`);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
