@@ -254,8 +254,8 @@
     },
     "status": {
       "pending": "Очікується",
-      "completed": "Готово",
-      "reviewed": "Переглянуто",
+      "completed": "Результат готовий",
+      "reviewed": "Переглянуто лікарем",
       "pending_review": "Очікує перегляду",
       "auto_release": "Автовидача",
       "released": "Опубліковано"

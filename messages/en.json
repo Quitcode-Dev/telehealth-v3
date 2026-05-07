@@ -254,8 +254,8 @@
     },
     "status": {
       "pending": "Pending",
-      "completed": "Completed",
-      "reviewed": "Reviewed",
+      "completed": "Result ready",
+      "reviewed": "Reviewed by physician",
       "pending_review": "Pending review",
       "auto_release": "Auto release",
       "released": "Released"
