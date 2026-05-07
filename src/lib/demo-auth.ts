@@ -15,7 +15,11 @@ type DemoPersona = DemoLoginOption & {
 
 const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
-const DEMO_PERSONAS: Record<DemoRole, Omit<DemoPersona, "redirectPath"> & {basePath: string}> = {
+type DemoPersonaConfig = Omit<DemoPersona, "redirectPath"> & {
+  basePath: string;
+};
+
+const DEMO_PERSONAS: Record<DemoRole, DemoPersonaConfig> = {
   patient: {
     role: "patient",
     label: "Patient",
@@ -57,12 +61,20 @@ export function isDemoRole(value: string): value is DemoRole {
   return value in DEMO_PERSONAS;
 }
 
-export function getDemoPersona(role: DemoRole, locale?: string): DemoPersona | null {
+export function getDemoPersonaConfig(role: DemoRole): DemoPersonaConfig | null {
   if (!DEMO_MODE_ENABLED) {
     return null;
   }
 
-  const persona = DEMO_PERSONAS[role];
+  return DEMO_PERSONAS[role];
+}
+
+export function getDemoPersona(role: DemoRole, locale?: string): DemoPersona | null {
+  const persona = getDemoPersonaConfig(role);
+
+  if (!persona) {
+    return null;
+  }
 
   return {
     ...persona,

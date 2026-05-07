@@ -228,7 +228,7 @@ export function DashboardPageClient({isDemoPatient}: DashboardPageClientProps) {
                 </CardTitle>
                 <Button
                   type="button"
-                  className="h-7 border border-border bg-transparent px-2 text-xs text-foreground hover:bg-secondary"
+                  className="h-7 px-2 text-xs border border-border bg-transparent text-foreground hover:bg-secondary"
                   onClick={() => router.push(`/${locale}/appointments`)}
                 >
                   {t("actions.viewAll")}
@@ -280,7 +280,7 @@ export function DashboardPageClient({isDemoPatient}: DashboardPageClientProps) {
                 </CardTitle>
                 <Button
                   type="button"
-                  className="h-7 border border-border bg-transparent px-2 text-xs text-foreground hover:bg-secondary"
+                  className="h-7 px-2 text-xs border border-border bg-transparent text-foreground hover:bg-secondary"
                   onClick={() => router.push(`/${locale}/results`)}
                 >
                   {t("actions.viewAll")}

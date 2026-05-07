@@ -2,7 +2,7 @@ import {PrismaAdapter} from "@auth/prisma-adapter";
 import type {Adapter} from "next-auth/adapters";
 import type {NextAuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import {getDemoPersona, isDemoModeEnabled, isDemoRole} from "@/src/lib/demo-auth";
+import {getDemoPersonaConfig, isDemoModeEnabled, isDemoRole} from "@/src/lib/demo-auth";
 import prisma from "@/src/lib/prisma";
 import {isValidOtpCode, verifyAndConsumeOtpCode} from "@/src/lib/otp";
 
@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const persona = getDemoPersona(demoRole);
+        const persona = getDemoPersonaConfig(demoRole);
 
         if (!persona) {
           return null;
