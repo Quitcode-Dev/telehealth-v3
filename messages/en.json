@@ -234,9 +234,9 @@
   },
   "LabResultsPage": {
     "title": "My lab results",
-    "description": "View your released lab results, physician notes, and test summaries.",
+    "description": "View your lab results, physician notes, and test summaries.",
     "loading": "Loading results…",
-    "empty": "No released lab results found.",
+    "empty": "No lab results found.",
     "labels": {
       "physician": "Ordering physician",
       "result": "Result",
@@ -251,6 +251,14 @@
     "category": {
       "routine": "Routine",
       "sensitive": "Sensitive"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Result ready",
+      "reviewed": "Reviewed by physician",
+      "pending_review": "Pending review",
+      "auto_release": "Auto release",
+      "released": "Released"
     },
     "filters": {
       "label": "Filter results",

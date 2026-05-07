@@ -7,6 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "seed": "tsx scripts/seed.ts",
+    "seed:reset": "tsx scripts/seed-reset.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -25,6 +27,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.105.3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -35,9 +38,10 @@
     "prisma": "^7.7.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "tsx scripts/seed.ts"
   }
 }

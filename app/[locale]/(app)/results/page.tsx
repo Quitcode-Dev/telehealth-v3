@@ -8,13 +8,14 @@ import {Button} from "@/src/components/ui/button";
 import {Card, CardContent} from "@/src/components/ui/card";
 
 type LabResultCategory = "ROUTINE" | "SENSITIVE";
+type LabResultStatus = "PENDING" | "COMPLETED" | "REVIEWED" | "PENDING_REVIEW" | "AUTO_RELEASE" | "RELEASED";
 
 type LabResult = {
   id: string;
   testName: string;
   resultValue: string | null;
   contextNote: string | null;
-  status: string;
+  status: LabResultStatus;
   category: LabResultCategory | null;
   sourceSystem: string | null;
   observedAt: string | null;
@@ -30,6 +31,16 @@ type Pagination = {
 };
 
 type ResultIndicator = "normal" | "abnormal" | "critical" | "unknown";
+type ResultStatusTranslationKey = "pending" | "completed" | "reviewed" | "pending_review" | "auto_release" | "released";
+
+const RESULT_STATUS_TRANSLATION_KEYS: Record<LabResultStatus, ResultStatusTranslationKey> = {
+  PENDING: "pending",
+  COMPLETED: "completed",
+  REVIEWED: "reviewed",
+  PENDING_REVIEW: "pending_review",
+  AUTO_RELEASE: "auto_release",
+  RELEASED: "released",
+};
 
 function deriveIndicator(resultValue: string | null): ResultIndicator {
   if (!resultValue) return "unknown";
@@ -52,7 +63,7 @@ function formatDate(isoString: string | null): string {
   }
 }
 
-function StatusBadge({resultValue}: {resultValue: string | null}) {
+function ResultValueIndicatorBadge({resultValue}: {resultValue: string | null}) {
   const t = useTranslations("LabResultsPage");
   const indicator = deriveIndicator(resultValue);
 
@@ -71,6 +82,30 @@ function StatusBadge({resultValue}: {resultValue: string | null}) {
       ].join(" ")}
     >
       {t(`indicators.${indicator}`)}
+    </span>
+  );
+}
+
+function ResultStatusBadge({status}: {status: LabResultStatus}) {
+  const t = useTranslations("LabResultsPage");
+
+  const styles: Record<LabResultStatus, string> = {
+    PENDING: "bg-amber-100 text-amber-700",
+    COMPLETED: "bg-blue-100 text-blue-700",
+    REVIEWED: "bg-violet-100 text-violet-700",
+    PENDING_REVIEW: "bg-orange-100 text-orange-700",
+    AUTO_RELEASE: "bg-sky-100 text-sky-700",
+    RELEASED: "bg-green-100 text-green-700",
+  };
+
+  return (
+    <span
+      className={[
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        styles[status],
+      ].join(" ")}
+    >
+      {t(`status.${RESULT_STATUS_TRANSLATION_KEYS[status]}`)}
     </span>
   );
 }
@@ -112,7 +147,8 @@ function LabResultCard({result, locale}: {result: LabResult; locale: string}) {
                 <p className="text-xs text-muted-foreground">{formatDate(displayDate)}</p>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                <StatusBadge resultValue={result.resultValue} />
+                <ResultStatusBadge status={result.status} />
+                <ResultValueIndicatorBadge resultValue={result.resultValue} />
                 <CategoryBadge category={result.category} />
               </div>
             </div>
@@ -175,7 +211,6 @@ export default function LabResultsPage() {
       try {
         const params = new URLSearchParams({
           patientId: "me",
-          status: "released",
           page: String(page),
         });
         if (dateFrom) params.set("dateFrom", dateFrom);
