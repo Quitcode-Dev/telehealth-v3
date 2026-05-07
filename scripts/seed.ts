@@ -246,7 +246,7 @@ const PATIENTS = [
   },
 ] as const;
 
-function scheduledAt(daysFromToday: number, hour: number, minute = 0) {
+function dateFromTodayAt(daysFromToday: number, hour: number, minute = 0) {
   const value = new Date();
   value.setHours(0, 0, 0, 0);
   value.setDate(value.getDate() + daysFromToday);
@@ -254,7 +254,7 @@ function scheduledAt(daysFromToday: number, hour: number, minute = 0) {
   return value;
 }
 
-function formatReminderLead(appointmentDate: Date) {
+function getReminderLeadText(appointmentDate: Date) {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
@@ -280,7 +280,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333331",
     patientId: PATIENTS[0].id,
-    scheduledAt: scheduledAt(-10, 10, 30),
+    scheduledAt: dateFromTodayAt(-10, 10, 30),
     status: "COMPLETED" as const,
     reasonForVisit: "Follow-up after annual wellness check",
     providerName: DEMO_PHYSICIANS[0].name,
@@ -290,7 +290,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333332",
     patientId: PATIENTS[0].id,
-    scheduledAt: scheduledAt(-4, 9, 0),
+    scheduledAt: dateFromTodayAt(-4, 9, 0),
     status: "COMPLETED" as const,
     reasonForVisit: "Discuss blood test results",
     providerName: DEMO_PHYSICIANS[2].name,
@@ -300,7 +300,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333333",
     patientId: PATIENTS[0].id,
-    scheduledAt: scheduledAt(1, 11, 0),
+    scheduledAt: dateFromTodayAt(1, 11, 0),
     status: "SCHEDULED" as const,
     reasonForVisit: "Recurring headaches consultation",
     providerName: DEMO_PHYSICIANS[2].name,
@@ -310,7 +310,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333334",
     patientId: PATIENTS[0].id,
-    scheduledAt: scheduledAt(5, 15, 0),
+    scheduledAt: dateFromTodayAt(5, 15, 0),
     status: "SCHEDULED" as const,
     reasonForVisit: "General practice check-in",
     providerName: DEMO_PHYSICIANS[0].name,
@@ -320,7 +320,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333335",
     patientId: PATIENTS[0].id,
-    scheduledAt: scheduledAt(3, 13, 30),
+    scheduledAt: dateFromTodayAt(3, 13, 30),
     status: "CANCELLED" as const,
     reasonForVisit: "Skin rash review",
     providerName: DEMO_PHYSICIANS[1].name,
@@ -330,7 +330,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333336",
     patientId: PATIENTS[1].id,
-    scheduledAt: scheduledAt(-12, 14, 0),
+    scheduledAt: dateFromTodayAt(-12, 14, 0),
     status: "COMPLETED" as const,
     reasonForVisit: "Prenatal follow-up",
     providerName: DEMO_PHYSICIANS[1].name,
@@ -340,7 +340,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333337",
     patientId: PATIENTS[1].id,
-    scheduledAt: scheduledAt(2, 9, 30),
+    scheduledAt: dateFromTodayAt(2, 9, 30),
     status: "SCHEDULED" as const,
     reasonForVisit: "Routine gynecology follow-up",
     providerName: DEMO_PHYSICIANS[1].name,
@@ -350,7 +350,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333338",
     patientId: PATIENTS[2].id,
-    scheduledAt: scheduledAt(-7, 16, 0),
+    scheduledAt: dateFromTodayAt(-7, 16, 0),
     status: "COMPLETED" as const,
     reasonForVisit: "Blood pressure follow-up",
     providerName: DEMO_PHYSICIANS[0].name,
@@ -360,7 +360,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-333333333339",
     patientId: PATIENTS[3].id,
-    scheduledAt: scheduledAt(6, 10, 0),
+    scheduledAt: dateFromTodayAt(6, 10, 0),
     status: "SCHEDULED" as const,
     reasonForVisit: "Migraine management",
     providerName: DEMO_PHYSICIANS[2].name,
@@ -370,7 +370,7 @@ const APPOINTMENTS = [
   {
     id: "33333333-3333-4333-8333-33333333333a",
     patientId: PATIENTS[4].id,
-    scheduledAt: scheduledAt(4, 12, 30),
+    scheduledAt: dateFromTodayAt(4, 12, 30),
     status: "CANCELLED" as const,
     reasonForVisit: "Medication review",
     providerName: DEMO_PHYSICIANS[0].name,
@@ -389,8 +389,8 @@ const LAB_RESULTS = [
     status: LabResultStatus.RELEASED,
     category: LabResultCategory.ROUTINE,
     sourceSystem: "Dila",
-    observedAt: scheduledAt(-10, 8, 15),
-    releasedAt: scheduledAt(-9, 13, 0),
+    observedAt: dateFromTodayAt(-10, 8, 15),
+    releasedAt: dateFromTodayAt(-9, 13, 0),
   },
   {
     id: "44444444-4444-4444-8444-444444444442",
@@ -401,8 +401,8 @@ const LAB_RESULTS = [
     status: LabResultStatus.RELEASED,
     category: LabResultCategory.ROUTINE,
     sourceSystem: "Synevo",
-    observedAt: scheduledAt(-5, 7, 45),
-    releasedAt: scheduledAt(-4, 12, 30),
+    observedAt: dateFromTodayAt(-5, 7, 45),
+    releasedAt: dateFromTodayAt(-4, 12, 30),
   },
   {
     id: "44444444-4444-4444-8444-444444444443",
@@ -413,8 +413,8 @@ const LAB_RESULTS = [
     status: LabResultStatus.REVIEWED,
     category: LabResultCategory.ROUTINE,
     sourceSystem: "Dila",
-    observedAt: scheduledAt(-4, 8, 0),
-    releasedAt: scheduledAt(-3, 10, 0),
+    observedAt: dateFromTodayAt(-4, 8, 0),
+    releasedAt: dateFromTodayAt(-3, 10, 0),
   },
   {
     id: "44444444-4444-4444-8444-444444444444",
@@ -425,7 +425,7 @@ const LAB_RESULTS = [
     status: LabResultStatus.PENDING,
     category: LabResultCategory.ROUTINE,
     sourceSystem: "Dila",
-    observedAt: scheduledAt(-1, 9, 30),
+    observedAt: dateFromTodayAt(-1, 9, 30),
     releasedAt: null,
   },
   {
@@ -437,7 +437,7 @@ const LAB_RESULTS = [
     status: LabResultStatus.PENDING_REVIEW,
     category: LabResultCategory.SENSITIVE,
     sourceSystem: "Lviv Regional Diagnostic Center",
-    observedAt: scheduledAt(-2, 14, 0),
+    observedAt: dateFromTodayAt(-2, 14, 0),
     releasedAt: null,
   },
   {
@@ -449,8 +449,8 @@ const LAB_RESULTS = [
     status: LabResultStatus.RELEASED,
     category: LabResultCategory.ROUTINE,
     sourceSystem: "Synevo",
-    observedAt: scheduledAt(-1, 7, 30),
-    releasedAt: scheduledAt(0, 9, 0),
+    observedAt: dateFromTodayAt(-1, 7, 30),
+    releasedAt: dateFromTodayAt(0, 9, 0),
   },
 ] as const;
 
@@ -460,7 +460,7 @@ const REMINDER_NOTIFICATIONS = [
     userId: USERS.oksana.id,
     resourceId: APPOINTMENTS[2].id,
     title: "Appointment reminder",
-    content: `${DEMO_PHYSICIANS[2].name} ${formatReminderLead(APPOINTMENTS[2].scheduledAt)} at ${APPOINTMENTS[2].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
+    content: `${DEMO_PHYSICIANS[2].name} ${getReminderLeadText(APPOINTMENTS[2].scheduledAt)} at ${APPOINTMENTS[2].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
     link: "/appointments",
   },
   {
@@ -468,7 +468,7 @@ const REMINDER_NOTIFICATIONS = [
     userId: USERS.oksana.id,
     resourceId: APPOINTMENTS[3].id,
     title: "Appointment reminder",
-    content: `${DEMO_PHYSICIANS[0].name} ${formatReminderLead(APPOINTMENTS[3].scheduledAt)} at ${APPOINTMENTS[3].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
+    content: `${DEMO_PHYSICIANS[0].name} ${getReminderLeadText(APPOINTMENTS[3].scheduledAt)} at ${APPOINTMENTS[3].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
     link: "/appointments",
   },
   {
@@ -476,7 +476,7 @@ const REMINDER_NOTIFICATIONS = [
     userId: USERS.marta.id,
     resourceId: APPOINTMENTS[6].id,
     title: "Appointment reminder",
-    content: `${DEMO_PHYSICIANS[1].name} ${formatReminderLead(APPOINTMENTS[6].scheduledAt)} at ${APPOINTMENTS[6].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
+    content: `${DEMO_PHYSICIANS[1].name} ${getReminderLeadText(APPOINTMENTS[6].scheduledAt)} at ${APPOINTMENTS[6].scheduledAt.toLocaleTimeString("uk-UA", {hour: "2-digit", minute: "2-digit"})}`,
     link: "/appointments",
   },
 ] as const;
@@ -501,7 +501,7 @@ const MESSAGES = [
     threadId: MESSAGE_THREAD.id,
     senderId: USERS.oksana.id,
     body: "Understood, I will upload the notes before the appointment.",
-    readAt: scheduledAt(-1, 18, 0),
+    readAt: dateFromTodayAt(-1, 18, 0),
   },
 ] as const;
 
