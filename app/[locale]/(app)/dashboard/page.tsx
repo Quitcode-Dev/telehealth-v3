@@ -4,6 +4,7 @@ import {useTranslations} from "next-intl";
 import {useEffect, useState} from "react";
 import {useRouter, useParams} from "next/navigation";
 import Link from "next/link";
+import {DemoExperienceCard} from "@/src/components/demo/DemoExperienceCard";
 import {Card, CardContent, CardHeader, CardTitle} from "@/src/components/ui/card";
 import {Button} from "@/src/components/ui/button";
 
@@ -38,6 +39,13 @@ type MessageThread = {
   id: string;
   unreadCount: number;
 };
+
+type AuthSession = {
+  user?: {
+    role?: string;
+    isDemo?: boolean;
+  };
+} | null;
 
 type ResultIndicator = "normal" | "abnormal" | "critical" | "unknown";
 
@@ -103,6 +111,7 @@ export default function DashboardPage() {
   const [labResults, setLabResults] = useState<LabResult[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDemoPatient, setIsDemoPatient] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,6 +122,17 @@ export default function DashboardPage() {
       setError(null);
 
       try {
+        const sessionRes = await fetch("/api/auth/session", {cache: "no-store"});
+        const session = sessionRes.ok ? ((await sessionRes.json()) as AuthSession) : null;
+
+        if (session?.user?.isDemo && session.user.role === "patient") {
+          if (!cancelled) {
+            setIsDemoPatient(true);
+            setIsLoading(false);
+          }
+          return;
+        }
+
         const [appointmentsRes, labResultsRes, messagesRes] = await Promise.all([
           fetch("/api/appointments?status=upcoming"),
           fetch("/api/lab-results?status=released&limit=3"),
@@ -120,6 +140,8 @@ export default function DashboardPage() {
         ]);
 
         if (!cancelled) {
+          setIsDemoPatient(false);
+
           if (appointmentsRes.status === 401 || labResultsRes.status === 401 || messagesRes.status === 401) {
             setError(t("errors.unauthorized"));
             return;
@@ -164,6 +186,26 @@ export default function DashboardPage() {
     {label: t("actions.sendMessage"), href: `/${locale}/messages`},
     {label: t("actions.updateProfile"), href: `/${locale}/profile`},
   ];
+
+  if (isDemoPatient) {
+    return (
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("demo.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("demo.description")}</p>
+        </div>
+        <DemoExperienceCard
+          title={t("demo.card.title")}
+          description={t("demo.card.description")}
+          highlights={[t("demo.highlights.appointments"), t("demo.highlights.results"), t("demo.highlights.messages")]}
+          actions={[
+            {href: `/${locale}/appointments`, label: t("demo.actions.appointments")},
+            {href: `/${locale}/profile`, label: t("demo.actions.profile")},
+          ]}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8">

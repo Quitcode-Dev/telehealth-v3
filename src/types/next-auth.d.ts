@@ -8,6 +8,7 @@ declare module "next-auth" {
       phone: string | null;
       locale: string;
       role: string;
+      isDemo: boolean;
     };
   }
 
@@ -15,6 +16,7 @@ declare module "next-auth" {
     phone?: string | null;
     locale?: string;
     role?: string;
+    isDemo?: boolean;
   }
 }
 
@@ -24,5 +26,6 @@ declare module "next-auth/jwt" {
     phone?: string | null;
     locale?: string;
     role?: string;
+    isDemo?: boolean;
   }
 }
