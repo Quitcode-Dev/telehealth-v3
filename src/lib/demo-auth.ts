@@ -15,7 +15,7 @@ type DemoPersona = DemoLoginOption & {
 
 const DEMO_MODE_ENABLED = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
-const DEMO_PERSONAS: Record<DemoRole, Omit<DemoPersona, "redirectPath"> & {route: string}> = {
+const DEMO_PERSONAS: Record<DemoRole, Omit<DemoPersona, "redirectPath"> & {basePath: string}> = {
   patient: {
     role: "patient",
     label: "Patient",
@@ -23,7 +23,7 @@ const DEMO_PERSONAS: Record<DemoRole, Omit<DemoPersona, "redirectPath"> & {route
     email: process.env.DEMO_PATIENT_EMAIL ?? "demo.patient@medbridge.dev",
     password: process.env.DEMO_PATIENT_PASSWORD ?? "demo-patient",
     locale: "uk",
-    route: "/dashboard",
+    basePath: "/dashboard",
   },
   physician: {
     role: "physician",
@@ -32,7 +32,7 @@ const DEMO_PERSONAS: Record<DemoRole, Omit<DemoPersona, "redirectPath"> & {route
     email: process.env.DEMO_PHYSICIAN_EMAIL ?? "demo.physician@medbridge.dev",
     password: process.env.DEMO_PHYSICIAN_PASSWORD ?? "demo-physician",
     locale: "en",
-    route: "/physician",
+    basePath: "/physician",
   },
   admin: {
     role: "admin",
@@ -41,7 +41,7 @@ const DEMO_PERSONAS: Record<DemoRole, Omit<DemoPersona, "redirectPath"> & {route
     email: process.env.DEMO_ADMIN_EMAIL ?? "demo.admin@medbridge.dev",
     password: process.env.DEMO_ADMIN_PASSWORD ?? "demo-admin",
     locale: "en",
-    route: "/admin",
+    basePath: "/admin",
   },
 };
 
@@ -66,7 +66,7 @@ export function getDemoPersona(role: DemoRole, locale?: string): DemoPersona | n
 
   return {
     ...persona,
-    redirectPath: getRedirectPath(locale, persona.route),
+    redirectPath: getRedirectPath(locale, persona.basePath),
   };
 }
 
@@ -76,11 +76,7 @@ export function getDemoLoginOptions(locale: string): DemoLoginOption[] {
   }
 
   return (Object.keys(DEMO_PERSONAS) as DemoRole[]).map((role) => {
-    const persona = getDemoPersona(role, locale);
-
-    if (!persona) {
-      throw new Error(`Demo persona ${role} is unavailable while demo mode is enabled`);
-    }
+    const persona = getDemoPersona(role, locale)!;
 
     return {
       role: persona.role,
