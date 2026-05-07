@@ -31,6 +31,16 @@ type Pagination = {
 };
 
 type ResultIndicator = "normal" | "abnormal" | "critical" | "unknown";
+type ResultStatusTranslationKey = "pending" | "completed" | "reviewed" | "pending_review" | "auto_release" | "released";
+
+const RESULT_STATUS_TRANSLATION_KEYS: Record<LabResultStatus, ResultStatusTranslationKey> = {
+  PENDING: "pending",
+  COMPLETED: "completed",
+  REVIEWED: "reviewed",
+  PENDING_REVIEW: "pending_review",
+  AUTO_RELEASE: "auto_release",
+  RELEASED: "released",
+};
 
 function deriveIndicator(resultValue: string | null): ResultIndicator {
   if (!resultValue) return "unknown";
@@ -95,7 +105,7 @@ function ResultStatusBadge({status}: {status: LabResultStatus}) {
         styles[status],
       ].join(" ")}
     >
-      {t(`status.${status.toLowerCase() as "pending" | "completed" | "reviewed" | "pending_review" | "auto_release" | "released"}`)}
+      {t(`status.${RESULT_STATUS_TRANSLATION_KEYS[status]}`)}
     </span>
   );
 }
