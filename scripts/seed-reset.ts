@@ -6,6 +6,8 @@ import {PrismaClient} from "@prisma/client";
 loadEnv({path: resolve(process.cwd(), ".env.local")});
 loadEnv();
 
+// This reset is intentionally guarded for local development only.
+// Set ALLOW_SEED_RESET=true when you really want to clear the seeded tables.
 if (process.env.ALLOW_SEED_RESET !== "true") {
   console.error("Seed reset refused: set ALLOW_SEED_RESET=true to continue.");
   process.exit(1);

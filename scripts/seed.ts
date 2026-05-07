@@ -24,19 +24,19 @@ function initializeClients() {
   demoPassword = process.env.DEMO_PASSWORD ?? "";
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL must be set to run npm run seed");
+    throw new Error("DATABASE_URL must be set to run the seed script");
   }
 
   if (!supabaseUrl) {
-    throw new Error("SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL must be set to run npm run seed");
+    throw new Error("SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL must be set to run the seed script");
   }
 
   if (!supabaseServiceRoleKey) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY must be set to run npm run seed");
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY must be set to run the seed script");
   }
 
   if (!demoPassword) {
-    throw new Error("DEMO_PASSWORD must be set to run npm run seed");
+    throw new Error("DEMO_PASSWORD must be set to run the seed script");
   }
 
   prisma = new PrismaClient({
@@ -543,6 +543,7 @@ async function seedAuthUsers() {
     const {error} = await adminClient.auth.admin.createUser({
       email: demoUser.email,
       password: demoPassword,
+      // Supabase admin APIs expect snake_case field names here.
       email_confirm: true,
       user_metadata: {
         full_name: demoUser.fullName,
@@ -712,7 +713,7 @@ async function seedReminderNotifications() {
     });
   }
 
-  console.log(`✓ Upserted ${REMINDER_NOTIFICATIONS.length} reminder log entries`);
+  console.log(`✓ Upserted ${REMINDER_NOTIFICATIONS.length} reminder notifications`);
 }
 
 async function seedMessages() {
