@@ -248,7 +248,6 @@ const PATIENTS = [
 
 function dateFromTodayAt(daysFromToday: number, hour: number, minute = 0) {
   const value = new Date();
-  value.setHours(0, 0, 0, 0);
   value.setDate(value.getDate() + daysFromToday);
   value.setHours(hour, minute, 0, 0);
   return value;

@@ -63,7 +63,7 @@ function formatDate(isoString: string | null): string {
   }
 }
 
-function ResultIndicatorBadge({resultValue}: {resultValue: string | null}) {
+function ResultValueIndicatorBadge({resultValue}: {resultValue: string | null}) {
   const t = useTranslations("LabResultsPage");
   const indicator = deriveIndicator(resultValue);
 
@@ -148,7 +148,7 @@ function LabResultCard({result, locale}: {result: LabResult; locale: string}) {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 <ResultStatusBadge status={result.status} />
-                <ResultIndicatorBadge resultValue={result.resultValue} />
+                <ResultValueIndicatorBadge resultValue={result.resultValue} />
                 <CategoryBadge category={result.category} />
               </div>
             </div>
