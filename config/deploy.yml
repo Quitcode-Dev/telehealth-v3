@@ -42,6 +42,7 @@ env:
     NODE_ENV: production
     PORT: "3000"
     HOSTNAME: "0.0.0.0"
+    NEXT_PUBLIC_DEMO_MODE: "true"
   secret:
     - DATABASE_URL
     - NEXTAUTH_SECRET
